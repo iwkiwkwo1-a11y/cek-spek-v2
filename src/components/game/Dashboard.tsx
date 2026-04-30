@@ -12,6 +12,8 @@ export default function Dashboard() {
   const activeFlightDetails = planes.filter(p => p.status === 'flying' && p.route);
   const criticalPlanes = planes.filter((p) => p.condition < 35).length;
 
+  const recentIncome = useMemo(() => logs.slice(0, 5).reduce((sum, log) => sum + log.income, 0), [logs]);
+
   const averageCondition = useMemo(() => {
     if (planes.length === 0) return 100;
     return planes.reduce((sum, plane) => sum + plane.condition, 0) / planes.length;
@@ -22,11 +24,12 @@ export default function Dashboard() {
       <h1 className="text-3xl font-bold">{companyName} Dashboard</h1>
 
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+        <p className="text-xs font-bold text-indigo-500 mb-1">VERSION 1.1</p>
         <p className="text-indigo-700 font-semibold">Mega Time Update Active</p>
         <p className="text-sm text-indigo-600 mt-1">1 detik dunia nyata = 1 jam di game. Operasional sekarang jauh lebih cepat.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-green-100 rounded-lg text-green-600"><DollarSign size={24} /></div>
@@ -57,6 +60,12 @@ export default function Dashboard() {
             <div><p className="text-sm text-gray-500">Need Maintenance</p><p className="text-2xl font-bold">{criticalPlanes}</p></div>
           </div>
         </div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-emerald-100 rounded-lg text-emerald-600"><DollarSign size={24} /></div>
+            <div><p className="text-sm text-gray-500">Recent Revenue</p><p className="text-2xl font-bold">${recentIncome.toLocaleString()}</p></div>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -83,6 +92,15 @@ export default function Dashboard() {
             );
           })}
         </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-xl font-bold mb-3">v1.1 Release Notes</h2>
+        <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
+          <li>Workshop system sekarang punya Quick Repair, Full Overhaul, dan Refurbish Package.</li>
+          <li>Progression armada diperluas dengan roster pesawat dunia nyata + bandara tambahan global.</li>
+          <li>Ritme simulasi tetap 1 detik nyata = 1 jam game untuk gameplay yang lebih dinamis.</li>
+        </ul>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">

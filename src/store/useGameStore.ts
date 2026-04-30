@@ -47,7 +47,7 @@ interface GameState {
   buyPlane: (modelId: string) => boolean;
   upgradePlane: (planeId: string, upgradeType: 'engine' | 'capacity' | 'fuelEfficiency' | 'comfort') => boolean;
   maintainPlane: (planeId: string) => boolean;
-  overhaullPlane: (planeId: string) => boolean;
+  overhaulPlane: (planeId: string) => boolean;
   refurbishPlane: (planeId: string) => boolean;
   assignRoute: (planeId: string, destinationId: string, ticketPrice: number) => boolean;
   processOfflineProgress: () => void;
@@ -173,7 +173,7 @@ export const useGameStore = create<GameState>()(
         return true;
       },
 
-      overhaullPlane: (planeId) => {
+      overhaulPlane: (planeId) => {
         const state = get();
         const plane = state.planes.find(p => p.id === planeId);
         if (!plane || plane.status !== 'idle' || plane.condition >= 100) return false;

@@ -38,6 +38,7 @@ export default function Home() {
           <h1 className="text-2xl font-black text-blue-600 flex items-center gap-2">
             <Globe className="text-blue-600" />
             Airline Tycoon
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">v1.1</span>
           </h1>
         </div>
 

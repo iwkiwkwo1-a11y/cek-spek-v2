@@ -10,7 +10,7 @@ const getUpgradeCost = (level: number, type: 'engine' | 'capacity' | 'fuelEffici
 };
 
 export default function Workshop() {
-  const { money, planes, upgradePlane, maintainPlane, overhaullPlane, refurbishPlane } = useGameStore();
+  const { money, planes, upgradePlane, maintainPlane, overhaulPlane, refurbishPlane } = useGameStore();
 
   const handle = (ok: boolean, success: string, fail: string) => alert(ok ? success : fail);
 
@@ -61,7 +61,7 @@ export default function Workshop() {
 
                 <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <div className="flex items-center gap-3"><Wrench size={18} className="text-amber-600" /><div><p className="font-medium text-amber-900">Full Overhaul</p><p className="text-sm text-amber-700">100% condition with premium parts</p></div></div>
-                  <button onClick={() => handle(overhaullPlane(plane.id), 'Full overhaul selesai!', 'Overhaul gagal.')} disabled={plane.condition >= 100 || plane.status !== 'idle'} className="px-3 py-2 bg-amber-600 text-white rounded disabled:bg-gray-300 text-sm">${Math.floor((100 - plane.condition) * 800).toLocaleString()}</button>
+                  <button onClick={() => handle(overhaulPlane(plane.id), 'Full overhaul selesai!', 'Overhaul gagal.')} disabled={plane.condition >= 100 || plane.status !== 'idle'} className="px-3 py-2 bg-amber-600 text-white rounded disabled:bg-gray-300 text-sm">${Math.floor((100 - plane.condition) * 800).toLocaleString()}</button>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
