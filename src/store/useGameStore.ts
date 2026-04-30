@@ -34,6 +34,8 @@ export interface FlightLog {
   timestamp: number;
 }
 
+export const MAX_UPGRADE_LEVEL = 6;
+
 interface GameState {
   money: number;
   companyName: string;
@@ -45,6 +47,8 @@ interface GameState {
   buyPlane: (modelId: string) => boolean;
   upgradePlane: (planeId: string, upgradeType: 'engine' | 'capacity' | 'fuelEfficiency' | 'comfort') => boolean;
   maintainPlane: (planeId: string) => boolean;
+  overhaullPlane: (planeId: string) => boolean;
+  refurbishPlane: (planeId: string) => boolean;
   assignRoute: (planeId: string, destinationId: string, ticketPrice: number) => boolean;
   processOfflineProgress: () => void;
   gameTick: () => void;
@@ -69,15 +73,20 @@ function deg2rad(deg: number) {
   return deg * (Math.PI / 180);
 }
 
-const UPGRADE_COSTS = {
+const UPGRADE_BASE_COSTS = {
   engine: 10000,
   capacity: 15000,
-  fuel: 8000,
+  fuelEfficiency: 8000,
   comfort: 12000,
 };
 
 const FUEL_PRICE_PER_KM = 2;
 const MAINTENANCE_COST_PER_PERCENT = 500;
+
+const getUpgradeCost = (level: number, upgradeType: 'engine' | 'capacity' | 'fuelEfficiency' | 'comfort') => {
+  const base = UPGRADE_BASE_COSTS[upgradeType];
+  return Math.floor(base * Math.pow(1.3, Math.max(0, level - 1)));
+};
 
 export const useGameStore = create<GameState>()(
   persist(
@@ -118,7 +127,20 @@ export const useGameStore = create<GameState>()(
 
       upgradePlane: (planeId, upgradeType) => {
         const state = get();
-        const cost = UPGRADE_COSTS[upgradeType === 'fuelEfficiency' ? 'fuel' : upgradeType];
+        const plane = state.planes.find(p => p.id === planeId);
+        if (!plane || plane.status !== 'idle') return false;
+
+        const currentLevel = upgradeType === 'engine'
+          ? plane.engineLevel
+          : upgradeType === 'capacity'
+            ? plane.capacityLevel
+            : upgradeType === 'fuelEfficiency'
+              ? plane.fuelEfficiencyLevel
+              : plane.comfortLevel;
+
+        if (currentLevel >= MAX_UPGRADE_LEVEL) return false;
+
+        const cost = getUpgradeCost(currentLevel, upgradeType);
         if (state.money < cost) return false;
 
         set((currentState) => ({
@@ -147,6 +169,41 @@ export const useGameStore = create<GameState>()(
         set((currentState) => ({
           money: currentState.money - cost,
           planes: currentState.planes.map(p => p.id === planeId ? { ...p, condition: 100 } : p)
+        }));
+        return true;
+      },
+
+      overhaullPlane: (planeId) => {
+        const state = get();
+        const plane = state.planes.find(p => p.id === planeId);
+        if (!plane || plane.status !== 'idle' || plane.condition >= 100) return false;
+
+        const cost = Math.floor((100 - plane.condition) * 800);
+        if (state.money < cost) return false;
+
+        set((currentState) => ({
+          money: currentState.money - cost,
+          planes: currentState.planes.map(p => p.id === planeId ? { ...p, condition: 100 } : p)
+        }));
+        return true;
+      },
+
+      refurbishPlane: (planeId) => {
+        const state = get();
+        const plane = state.planes.find(p => p.id === planeId);
+        if (!plane || plane.status !== 'idle') return false;
+
+        const cost = 75000;
+        if (state.money < cost) return false;
+
+        set((currentState) => ({
+          money: currentState.money - cost,
+          planes: currentState.planes.map((p) => p.id !== planeId ? p : ({
+            ...p,
+            condition: Math.min(100, p.condition + 15),
+            comfortLevel: Math.min(MAX_UPGRADE_LEVEL, p.comfortLevel + 1),
+            fuelEfficiencyLevel: Math.min(MAX_UPGRADE_LEVEL, p.fuelEfficiencyLevel + 1),
+          }))
         }));
         return true;
       },
