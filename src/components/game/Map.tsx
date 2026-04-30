@@ -1,56 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
+import { useMemo, useState, useEffect } from 'react';
+import { ComposableMap, Geographies, Geography, Line, Marker } from 'react-simple-maps';
 import { useGameStore } from '@/store/useGameStore';
 import { AIRPORTS } from '@/data/airports';
-import 'leaflet/dist/leaflet.css';
+import { geoInterpolate } from 'd3-geo';
 
-// Dynamic import for Leaflet map to avoid SSR issues
-const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Popup),
-  { ssr: false }
-);
-const Polyline = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Polyline),
-  { ssr: false }
-);
+const geoUrl = "/features.json";
 
 export default function GameMap() {
   const { planes } = useGameStore();
-  const [L, setL] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Import leaflet only on client side
-    import('leaflet').then((leaflet) => {
-      // Fix default icon issue with webpack/nextjs
-      delete (leaflet.Icon.Default.prototype as any)._getIconUrl;
-      leaflet.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-      });
-      setL(leaflet);
-    });
+    setMounted(true);
   }, []);
 
-  if (!L) {
-    return <div className="h-[500px] bg-gray-200 animate-pulse rounded-xl flex items-center justify-center">Loading Map...</div>;
-  }
-
-  // Calculate plane's current position based on route progress
+  // Calculate plane's current position using D3's geoInterpolate for accurate great-circle path
   const getPlanePosition = (plane: any): [number, number] | null => {
     if (!plane.route) return null;
 
@@ -61,44 +27,67 @@ export default function GameMap() {
 
     const progressRatio = Math.min(plane.route.progress / plane.route.distance, 1);
 
-    // Simple linear interpolation
-    const currentLat = from.lat + (to.lat - from.lat) * progressRatio;
-    const currentLng = from.lng + (to.lng - from.lng) * progressRatio;
+    // d3 geoInterpolate uses [longitude, latitude]
+    const interpolate = geoInterpolate([from.lng, from.lat], [to.lng, to.lat]);
+    const currentPos = interpolate(progressRatio);
 
-    return [currentLat, currentLng];
+    return currentPos as [number, number];
   };
 
-  const planeIcon = new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/789/789395.png', // simple plane icon
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-  });
+  const activeFlights = useMemo(() => {
+    return planes.filter(p => p.status === 'flying' && p.route);
+  }, [planes]);
+
+  if (!mounted) {
+    return <div className="h-[600px] bg-gray-200 animate-pulse rounded-xl flex items-center justify-center">Loading Map...</div>;
+  }
 
   return (
-    <div className="h-[600px] rounded-xl overflow-hidden shadow-sm border border-gray-100 z-0 relative">
-      <MapContainer
-        center={[20, 0]}
-        zoom={2}
-        style={{ height: '100%', width: '100%', zIndex: 1 }}
-        scrollWheelZoom={true}
+    <div className="h-[600px] bg-[#c1e0f5] rounded-xl overflow-hidden shadow-sm border border-gray-100 z-0 relative flex items-center justify-center">
+      <ComposableMap
+        projection="geoMercator"
+        projectionConfig={{
+          scale: 140,
+        }}
+        width={800}
+        height={400}
+        style={{ width: "100%", height: "100%" }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <Geographies geography={geoUrl}>
+          {({ geographies }) =>
+            geographies.map((geo) => (
+              <Geography
+                key={geo.rsmKey}
+                geography={geo}
+                fill="#f1f5f9"
+                stroke="#cbd5e1"
+                strokeWidth={0.5}
+                style={{
+                  default: { outline: "none" },
+                  hover: { fill: "#e2e8f0", outline: "none" },
+                  pressed: { outline: "none" },
+                }}
+              />
+            ))
+          }
+        </Geographies>
 
         {/* Draw Airports */}
         {AIRPORTS.map((airport) => (
-          <Marker key={airport.id} position={[airport.lat, airport.lng]}>
-            <Popup>
-              <b>{airport.name}</b><br/>
-              {airport.city}, {airport.country}
-            </Popup>
+          <Marker key={airport.id} coordinates={[airport.lng, airport.lat]}>
+            <circle r={2} fill="#ef4444" stroke="#fff" strokeWidth={1} />
+            <text
+              textAnchor="middle"
+              y={-5}
+              style={{ fontFamily: "system-ui", fill: "#334155", fontSize: "6px", fontWeight: "bold" }}
+            >
+              {airport.id}
+            </text>
           </Marker>
         ))}
 
-        {/* Draw Active Routes & Planes */}
-        {planes.filter(p => p.status === 'flying' && p.route).map((plane) => {
+        {/* Draw Routes & Planes */}
+        {activeFlights.map((plane) => {
           const from = AIRPORTS.find(a => a.id === plane.currentAirportId);
           const to = AIRPORTS.find(a => a.id === plane.route!.destinationAirportId);
 
@@ -107,27 +96,42 @@ export default function GameMap() {
           const currentPos = getPlanePosition(plane);
 
           return (
-            <div key={plane.id}>
+            <g key={plane.id}>
               {/* Route Line */}
-              <Polyline
-                positions={[[from.lat, from.lng], [to.lat, to.lng]]}
-                pathOptions={{ color: '#3b82f6', weight: 2, dashArray: '5, 10' }}
+              <Line
+                from={[from.lng, from.lat]}
+                to={[to.lng, to.lat]}
+                stroke="#3b82f6"
+                strokeWidth={1}
+                strokeLinecap="round"
+                strokeDasharray="4 4"
+                style={{ opacity: 0.6 }}
               />
 
-              {/* Current Plane Position */}
+              {/* Plane Marker */}
               {currentPos && (
-                <Marker position={currentPos} icon={planeIcon}>
-                  <Popup>
-                    <b>{plane.name}</b><br/>
-                    {from.city} &rarr; {to.city}<br/>
-                    Progress: {Math.round((plane.route!.progress / plane.route!.distance) * 100)}%
-                  </Popup>
+                <Marker coordinates={currentPos}>
+                  {/* Plane Icon (SVG) */}
+                  <g transform="translate(-8, -8) scale(0.6)">
+                    <path
+                      d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+                      fill="#1e3a8a"
+                    />
+                  </g>
+                  {/* Plane Name Tag */}
+                  <text
+                    textAnchor="middle"
+                    y={-12}
+                    style={{ fontFamily: "system-ui", fill: "#1e3a8a", fontSize: "5px", fontWeight: "bold" }}
+                  >
+                    {plane.name}
+                  </text>
                 </Marker>
               )}
-            </div>
+            </g>
           );
         })}
-      </MapContainer>
+      </ComposableMap>
     </div>
   );
 }

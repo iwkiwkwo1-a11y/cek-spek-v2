@@ -10,3 +10,257 @@
 ○ Compiling / ...
  GET / 200 in 6.6s (next.js: 6.3s, application-code: 368ms)
  GET / 200 in 78ms (next.js: 6ms, application-code: 72ms)
+⨯ ./src/components/game/Map.tsx:37:5
+Module not found: Can't resolve 'leaflet'
+  [90m35 |[0m   useEffect(() => {
+  [90m36 |[0m     [90m// Import leaflet only on client side[0m
+[31m[1m>[0m [90m37 |[0m     [36mimport[0m([32m'leaflet'[0m).then((leaflet) => {
+  [90m   |[0m     [31m[1m^^^^^^^^^^^^^^^^^[0m
+  [90m38 |[0m       [90m// Fix default icon issue with webpack/nextjs[0m
+  [90m39 |[0m       [36mdelete[0m (leaflet.[33mIcon[0m.[33mDefault[0m.prototype [36mas[0m any)._getIconUrl;
+  [90m40 |[0m       leaflet.[33mIcon[0m.[33mDefault[0m.mergeOptions({
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/game/Map.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/game/Map.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/game/Map.tsx:37:5
+Module not found: Can't resolve 'leaflet'
+  [90m35 |[0m   useEffect(() => {
+  [90m36 |[0m     [90m// Import leaflet only on client side[0m
+[31m[1m>[0m [90m37 |[0m     [36mimport[0m([32m'leaflet'[0m).then((leaflet) => {
+  [90m   |[0m     [31m[1m^^^^^^^^^^^^^^^^^[0m
+  [90m38 |[0m       [90m// Fix default icon issue with webpack/nextjs[0m
+  [90m39 |[0m       [36mdelete[0m (leaflet.[33mIcon[0m.[33mDefault[0m.prototype [36mas[0m any)._getIconUrl;
+  [90m40 |[0m       leaflet.[33mIcon[0m.[33mDefault[0m.mergeOptions({
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/game/Map.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/game/Map.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/game/Map.tsx:7:1
+Module not found: Can't resolve 'leaflet/dist/leaflet.css'
+  [90m 5 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'@/store/useGameStore'[0m;
+  [90m 6 |[0m [36mimport[0m { [33mAIRPORTS[0m } [36mfrom[0m [32m'@/data/airports'[0m;
+[31m[1m>[0m [90m 7 |[0m [36mimport[0m [32m'leaflet/dist/leaflet.css'[0m;
+  [90m   |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m 8 |[0m
+  [90m 9 |[0m [90m// Dynamic import for Leaflet map to avoid SSR issues[0m
+  [90m10 |[0m [36mconst[0m [33mMapContainer[0m = dynamic(
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/game/Map.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/game/Map.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/game/Map.tsx:7:1
+Module not found: Can't resolve 'leaflet/dist/leaflet.css'
+  [90m 5 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'@/store/useGameStore'[0m;
+  [90m 6 |[0m [36mimport[0m { [33mAIRPORTS[0m } [36mfrom[0m [32m'@/data/airports'[0m;
+[31m[1m>[0m [90m 7 |[0m [36mimport[0m [32m'leaflet/dist/leaflet.css'[0m;
+  [90m   |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m 8 |[0m
+  [90m 9 |[0m [90m// Dynamic import for Leaflet map to avoid SSR issues[0m
+  [90m10 |[0m [36mconst[0m [33mMapContainer[0m = dynamic(
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/game/Map.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/game/Map.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/game/Map.tsx
+Module not found: Can't resolve 'react-leaflet'
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/game/Map.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/game/Map.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/game/Map.tsx:11:9
+Module not found: Can't resolve 'react-leaflet'
+  [90m 9 |[0m [90m// Dynamic import for Leaflet map to avoid SSR issues[0m
+  [90m10 |[0m [36mconst[0m [33mMapContainer[0m = dynamic(
+[31m[1m>[0m [90m11 |[0m   () => [36mimport[0m([32m'react-leaflet'[0m).then((mod) => mod.[33mMapContainer[0m),
+  [90m   |[0m         [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m12 |[0m   { ssr: [36mfalse[0m }
+  [90m13 |[0m );
+  [90m14 |[0m [36mconst[0m [33mTileLayer[0m = dynamic(
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/game/Map.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/game/Map.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/game/Map.tsx:15:9
+Module not found: Can't resolve 'react-leaflet'
+  [90m13 |[0m );
+  [90m14 |[0m [36mconst[0m [33mTileLayer[0m = dynamic(
+[31m[1m>[0m [90m15 |[0m   () => [36mimport[0m([32m'react-leaflet'[0m).then((mod) => mod.[33mTileLayer[0m),
+  [90m   |[0m         [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m16 |[0m   { ssr: [36mfalse[0m }
+  [90m17 |[0m );
+  [90m18 |[0m [36mconst[0m [33mMarker[0m = dynamic(
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/game/Map.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/game/Map.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/game/Map.tsx:19:9
+Module not found: Can't resolve 'react-leaflet'
+  [90m17 |[0m );
+  [90m18 |[0m [36mconst[0m [33mMarker[0m = dynamic(
+[31m[1m>[0m [90m19 |[0m   () => [36mimport[0m([32m'react-leaflet'[0m).then((mod) => mod.[33mMarker[0m),
+  [90m   |[0m         [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m20 |[0m   { ssr: [36mfalse[0m }
+  [90m21 |[0m );
+  [90m22 |[0m [36mconst[0m [33mPopup[0m = dynamic(
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/game/Map.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/game/Map.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/game/Map.tsx:23:9
+Module not found: Can't resolve 'react-leaflet'
+  [90m21 |[0m );
+  [90m22 |[0m [36mconst[0m [33mPopup[0m = dynamic(
+[31m[1m>[0m [90m23 |[0m   () => [36mimport[0m([32m'react-leaflet'[0m).then((mod) => mod.[33mPopup[0m),
+  [90m   |[0m         [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m24 |[0m   { ssr: [36mfalse[0m }
+  [90m25 |[0m );
+  [90m26 |[0m [36mconst[0m [33mPolyline[0m = dynamic(
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/game/Map.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/game/Map.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/game/Map.tsx:27:9
+Module not found: Can't resolve 'react-leaflet'
+  [90m25 |[0m );
+  [90m26 |[0m [36mconst[0m [33mPolyline[0m = dynamic(
+[31m[1m>[0m [90m27 |[0m   () => [36mimport[0m([32m'react-leaflet'[0m).then((mod) => mod.[33mPolyline[0m),
+  [90m   |[0m         [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m28 |[0m   { ssr: [36mfalse[0m }
+  [90m29 |[0m );
+  [90m30 |[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/game/Map.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/game/Map.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+✓ Compiled in 2.6s
+ GET / 200 in 1492ms (next.js: 1042ms, application-code: 450ms)

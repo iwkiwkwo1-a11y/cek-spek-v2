@@ -2,16 +2,24 @@
 
 import { useGameStore } from '@/store/useGameStore';
 import { PLANE_MODELS } from '@/data/planes';
-import { Wrench, Zap, Users, Fuel } from 'lucide-react';
+import { Wrench, Zap, Users, Fuel, Sofa, ShieldAlert } from 'lucide-react';
 
 export default function Workshop() {
-  const { money, planes, upgradePlane } = useGameStore();
+  const { money, planes, upgradePlane, maintainPlane } = useGameStore();
 
-  const handleUpgrade = (planeId: string, type: 'engine' | 'capacity' | 'fuelEfficiency') => {
+  const handleUpgrade = (planeId: string, type: 'engine' | 'capacity' | 'fuelEfficiency' | 'comfort') => {
     if (upgradePlane(planeId, type)) {
       alert('Upgrade successful!');
     } else {
       alert('Not enough money!');
+    }
+  };
+
+  const handleMaintenance = (planeId: string) => {
+    if (maintainPlane(planeId)) {
+      alert('Plane successfully maintained!');
+    } else {
+      alert('Cannot perform maintenance! Check your balance or if the plane is currently flying.');
     }
   };
 
@@ -44,6 +52,27 @@ export default function Workshop() {
               </div>
 
               <div className="space-y-4">
+
+                {/* Maintenance */}
+                <div className="flex items-center justify-between p-3 bg-red-50 border border-red-100 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded ${plane.condition < 30 ? 'bg-red-500 text-white' : 'bg-red-100 text-red-600'}`}>
+                      <ShieldAlert size={20} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-red-900">Maintenance & Repair</p>
+                      <p className="text-sm text-red-700">Condition: {Math.round(plane.condition)}%</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleMaintenance(plane.id)}
+                    disabled={plane.condition >= 100 || plane.status !== 'idle'}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm"
+                  >
+                    Repair (${Math.floor((100 - plane.condition) * 500).toLocaleString()})
+                  </button>
+                </div>
+
                 {/* Engine Upgrade */}
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
@@ -79,6 +108,44 @@ export default function Workshop() {
                     className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition-colors text-sm"
                   >
                     $15,000
+                  </button>
+                </div>
+
+                {/* Fuel Efficiency Upgrade */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 text-green-600 rounded">
+                      <Fuel size={20} />
+                    </div>
+                    <div>
+                      <p className="font-medium">Fuel Efficiency</p>
+                      <p className="text-sm text-gray-500">Lvl {plane.fuelEfficiencyLevel} (+15% Efficiency)</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleUpgrade(plane.id, 'fuelEfficiency')}
+                    className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition-colors text-sm"
+                  >
+                    $8,000
+                  </button>
+                </div>
+
+                {/* Comfort Upgrade */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 text-purple-600 rounded">
+                      <Sofa size={20} />
+                    </div>
+                    <div>
+                      <p className="font-medium">Comfort & Class</p>
+                      <p className="text-sm text-gray-500">Lvl {plane.comfortLevel} (Enables higher ticket prices)</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleUpgrade(plane.id, 'comfort')}
+                    className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition-colors text-sm"
+                  >
+                    $12,000
                   </button>
                 </div>
 
