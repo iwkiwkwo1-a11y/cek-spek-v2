@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AIRPORTS, Airport } from '../data/airports';
-import { PLANE_MODELS, PlaneModel } from '../data/planes';
+import { AIRPORTS } from '../data/airports';
+import { PLANE_MODELS } from '../data/planes';
 
 export interface OwnedPlane {
   id: string;
@@ -40,6 +40,7 @@ interface GameState {
   planes: OwnedPlane[];
   logs: FlightLog[];
   lastSaved: number;
+  timeMultiplier: 1 | 2 | 3 | 4 | 5;
   setCompanyName: (name: string) => void;
   buyPlane: (modelId: string) => boolean;
   upgradePlane: (planeId: string, upgradeType: 'engine' | 'capacity' | 'fuelEfficiency' | 'comfort') => boolean;
@@ -48,6 +49,7 @@ interface GameState {
   processOfflineProgress: () => void;
   gameTick: () => void;
   addMoney: (amount: number) => void; // for testing/cheats
+  setTimeMultiplier: (multiplier: 1 | 2 | 3 | 4 | 5) => void;
 }
 
 // Haversine formula to calculate distance between two coordinates in km
@@ -86,8 +88,10 @@ export const useGameStore = create<GameState>()(
       planes: [],
       logs: [],
       lastSaved: Date.now(),
+      timeMultiplier: 1,
 
       setCompanyName: (name) => set({ companyName: name }),
+      setTimeMultiplier: (multiplier) => set({ timeMultiplier: multiplier }),
 
       buyPlane: (modelId) => {
         const state = get();
@@ -205,12 +209,19 @@ export const useGameStore = create<GameState>()(
       processOfflineProgress: () => {
         const state = get();
         const now = Date.now();
+        const timeMultiplier = state.timeMultiplier;
         let addedMoney = 0;
         const newLogs: FlightLog[] = [];
 
         const updatedPlanes = state.planes.map(plane => {
           if (plane.status === 'flying' && plane.route) {
-            if (now >= plane.route.estimatedArrivalTime) {
+            const model = PLANE_MODELS.find(m => m.id === plane.modelId);
+            const speed = (model?.baseSpeed || 500) * (1 + (plane.engineLevel - 1) * 0.1);
+            const timeElapsedMs = now - plane.route.departureTime;
+            const effectiveElapsedHours = (timeElapsedMs * timeMultiplier) / 3600000;
+            const currentProgress = effectiveElapsedHours * speed;
+
+            if (currentProgress >= plane.route.distance) {
               // Flight finished
               addedMoney += plane.route.income;
               newLogs.push({
@@ -220,7 +231,7 @@ export const useGameStore = create<GameState>()(
                 from: plane.currentAirportId,
                 to: plane.route.destinationAirportId,
                 income: plane.route.income,
-                timestamp: plane.route.estimatedArrivalTime
+                timestamp: now
               });
 
               // Degrade condition based on distance flown (roughly 1% per 500km)
@@ -236,12 +247,6 @@ export const useGameStore = create<GameState>()(
               } as OwnedPlane;
             } else {
               // Flight still in progress, update progress distance
-              const model = PLANE_MODELS.find(m => m.id === plane.modelId);
-              const speed = (model?.baseSpeed || 500) * (1 + (plane.engineLevel - 1) * 0.1);
-              const timeElapsedMs = now - plane.route.departureTime;
-              const timeElapsedHours = timeElapsedMs / 3600000;
-              const currentProgress = timeElapsedHours * speed;
-
               return {
                 ...plane,
                 route: {
