@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { ComposableMap, Geographies, Geography, Line, Marker } from 'react-simple-maps';
-import { useGameStore } from '@/store/useGameStore';
+import { OwnedPlane, useGameStore } from '@/store/useGameStore';
 import { AIRPORTS } from '@/data/airports';
 import { geoInterpolate } from 'd3-geo';
 
@@ -10,22 +10,18 @@ const geoUrl = "/features.json";
 
 export default function GameMap() {
   const { planes } = useGameStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Calculate plane's current position using D3's geoInterpolate for accurate great-circle path
-  const getPlanePosition = (plane: any): [number, number] | null => {
-    if (!plane.route) return null;
+  const getPlanePosition = (plane: OwnedPlane): [number, number] | null => {
+    const route = plane.route;
+    if (!route) return null;
 
     const from = AIRPORTS.find(a => a.id === plane.currentAirportId);
-    const to = AIRPORTS.find(a => a.id === plane.route.destinationAirportId);
+    const to = AIRPORTS.find(a => a.id === route.destinationAirportId);
 
     if (!from || !to) return null;
 
-    const progressRatio = Math.min(plane.route.progress / plane.route.distance, 1);
+    const progressRatio = Math.min(route.progress / route.distance, 1);
 
     // d3 geoInterpolate uses [longitude, latitude]
     const interpolate = geoInterpolate([from.lng, from.lat], [to.lng, to.lat]);
@@ -37,10 +33,6 @@ export default function GameMap() {
   const activeFlights = useMemo(() => {
     return planes.filter(p => p.status === 'flying' && p.route);
   }, [planes]);
-
-  if (!mounted) {
-    return <div className="h-[600px] bg-gray-200 animate-pulse rounded-xl flex items-center justify-center">Loading Map...</div>;
-  }
 
   return (
     <div className="h-[600px] bg-[#c1e0f5] rounded-xl overflow-hidden shadow-sm border border-gray-100 z-0 relative flex items-center justify-center">

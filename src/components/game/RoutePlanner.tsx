@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { AIRPORTS } from '@/data/airports';
-import { MapPin, Navigation } from 'lucide-react';
+import { Navigation } from 'lucide-react';
 
 export default function RoutePlanner() {
   const { planes, assignRoute } = useGameStore();
