@@ -1,8 +1,7 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
 import { ComposableMap, Geographies, Geography, Line, Marker } from 'react-simple-maps';
-import { useGameStore } from '@/store/useGameStore';
+import { OwnedPlane, useGameStore } from '@/store/useGameStore';
 import { AIRPORTS } from '@/data/airports';
 import { geoInterpolate } from 'd3-geo';
 
@@ -10,22 +9,18 @@ const geoUrl = "/features.json";
 
 export default function GameMap() {
   const { planes } = useGameStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Calculate plane's current position using D3's geoInterpolate for accurate great-circle path
-  const getPlanePosition = (plane: any): [number, number] | null => {
-    if (!plane.route) return null;
+  const getPlanePosition = (plane: OwnedPlane): [number, number] | null => {
+    const route = plane.route;
+    if (!route) return null;
 
     const from = AIRPORTS.find(a => a.id === plane.currentAirportId);
-    const to = AIRPORTS.find(a => a.id === plane.route.destinationAirportId);
+    const to = AIRPORTS.find(a => a.id === route.destinationAirportId);
 
     if (!from || !to) return null;
 
-    const progressRatio = Math.min(plane.route.progress / plane.route.distance, 1);
+    const progressRatio = Math.min(route.progress / route.distance, 1);
 
     // d3 geoInterpolate uses [longitude, latitude]
     const interpolate = geoInterpolate([from.lng, from.lat], [to.lng, to.lat]);
@@ -34,13 +29,7 @@ export default function GameMap() {
     return currentPos as [number, number];
   };
 
-  const activeFlights = useMemo(() => {
-    return planes.filter(p => p.status === 'flying' && p.route);
-  }, [planes]);
-
-  if (!mounted) {
-    return <div className="h-[600px] bg-gray-200 animate-pulse rounded-xl flex items-center justify-center">Loading Map...</div>;
-  }
+  const activeFlights = planes.filter(p => p.status === 'flying' && p.route);
 
   return (
     <div className="h-[600px] bg-[#c1e0f5] rounded-xl overflow-hidden shadow-sm border border-gray-100 z-0 relative flex items-center justify-center">
@@ -104,18 +93,19 @@ export default function GameMap() {
                 stroke="#3b82f6"
                 strokeWidth={1}
                 strokeLinecap="round"
-                strokeDasharray="4 4"
+                strokeDasharray="6 4"
                 style={{ opacity: 0.6 }}
               />
 
               {/* Plane Marker */}
               {currentPos && (
                 <Marker coordinates={currentPos}>
+                  <circle r={3.5} fill="rgba(30,64,175,0.2)" />
                   {/* Plane Icon (SVG) */}
-                  <g transform="translate(-8, -8) scale(0.6)">
+                  <g transform="translate(-8, -8) scale(0.6)" style={{ transition: "transform 0.9s linear" }}>
                     <path
                       d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
-                      fill="#1e3a8a"
+                      fill="#1e40af"
                     />
                   </g>
                   {/* Plane Name Tag */}
