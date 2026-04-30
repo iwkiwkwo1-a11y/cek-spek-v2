@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AIRPORTS, Airport } from '../data/airports';
-import { PLANE_MODELS, PlaneModel } from '../data/planes';
+import { AIRPORTS } from '../data/airports';
+import { PLANE_MODELS } from '../data/planes';
 
 export interface OwnedPlane {
   id: string;
