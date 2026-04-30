@@ -16,7 +16,7 @@ const distanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
 };
 
 export default function RoutePlanner() {
-  const { planes, assignRoute } = useGameStore();
+  const { planes, assignRoute, autoDispatchEnabled, autoTicketPrice, setAutoDispatch, setAutoTicketPrice } = useGameStore();
   const [selectedPlane, setSelectedPlane] = useState<string>('');
   const [selectedDestination, setSelectedDestination] = useState<string>('');
   const [ticketPrice, setTicketPrice] = useState<number>(500);
@@ -72,7 +72,7 @@ export default function RoutePlanner() {
     <>
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Route Control Center v2.2</h1>
+        <h1 className="text-3xl font-bold">Route Control Center v2.3</h1>
         <div className="flex gap-2">
           <select value={hubFilter} onChange={(e) => setHubFilter(e.target.value)} className="border rounded-lg px-3 py-2">
             <option value="all">All hubs</option>
@@ -83,6 +83,19 @@ export default function RoutePlanner() {
           <button onClick={bulkDispatchFromHub} disabled={hubFilter === 'all'} className="px-4 py-2 rounded-lg bg-indigo-600 text-white disabled:bg-gray-300">
             <Send size={16} className="inline mr-2" />Bulk Dispatch
           </button>
+        </div>
+      </div>
+
+
+      <div className="bg-white p-4 rounded-xl border border-gray-100 flex flex-wrap gap-4 items-center">
+        <h2 className="font-bold text-lg">Auto Passenger System v2.3</h2>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={autoDispatchEnabled} onChange={(e) => setAutoDispatch(e.target.checked)} />
+          Enable Auto Dispatch
+        </label>
+        <div className="flex items-center gap-2 text-sm">
+          <span>Auto Ticket Price</span>
+          <input type="number" min="50" step="10" value={autoTicketPrice} onChange={(e) => setAutoTicketPrice(Number(e.target.value))} className="w-28 p-2 border rounded" />
         </div>
       </div>
 

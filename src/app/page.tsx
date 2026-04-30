@@ -38,7 +38,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center p-6">
         <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg space-y-5">
-          <h1 className="text-3xl font-black text-gray-900">Airline Tycoon v2.2</h1>
+          <h1 className="text-3xl font-black text-gray-900">Airline Tycoon v2.3</h1>
           <p className="text-gray-600">Mulai perjalananmu: isi profil founder dan perusahaan dulu.</p>
 
           <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Nama kamu" className="w-full border rounded-lg p-3" />
@@ -71,7 +71,7 @@ export default function Home() {
           <h1 className="text-2xl font-black text-blue-600 flex items-center gap-2">
             <Globe className="text-blue-600" />
             Airline Tycoon
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">v2.2</span>
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">v2.3</span>
           </h1>
         </div>
 

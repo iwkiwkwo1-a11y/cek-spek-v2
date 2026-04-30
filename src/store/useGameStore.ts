@@ -48,6 +48,8 @@ interface GameState {
   completedFlights: number;
   reputation: number;
   emergencyFund: number;
+  autoDispatchEnabled: boolean;
+  autoTicketPrice: number;
   setCompanyName: (name: string) => void;
   initializeProfile: (playerName: string, companyName: string, playerSkill: "operations" | "finance" | "engineering" | "marketing") => void;
   buyPlane: (modelId: string) => boolean;
@@ -60,6 +62,8 @@ interface GameState {
   gameTick: () => void;
   addMoney: (amount: number) => void;
   applyEmergencyFund: (planeId: string) => boolean;
+  setAutoDispatch: (enabled: boolean) => void;
+  setAutoTicketPrice: (price: number) => void;
 }
 
 const REAL_SECONDS_TO_GAME_HOURS = 1;
@@ -109,8 +113,12 @@ export const useGameStore = create<GameState>()(
       completedFlights: 0,
       reputation: 50,
       emergencyFund: 0,
+      autoDispatchEnabled: false,
+      autoTicketPrice: 500,
 
       setCompanyName: (name) => set({ companyName: name }),
+      setAutoDispatch: (enabled) => set({ autoDispatchEnabled: enabled }),
+      setAutoTicketPrice: (price) => set({ autoTicketPrice: Math.max(50, price) }),
       initializeProfile: (playerName, companyName, playerSkill) => set({ playerName, companyName, playerSkill }),
 
       buyPlane: (modelId) => {
@@ -339,7 +347,22 @@ export const useGameStore = create<GameState>()(
         });
       },
 
-      gameTick: () => get().processOfflineProgress(),
+      gameTick: () => {
+        const state = get();
+        state.processOfflineProgress();
+
+        if (!state.autoDispatchEnabled) return;
+        const refreshed = get();
+        const idlePlanes = refreshed.planes.filter((p) => p.status === "idle");
+
+        idlePlanes.forEach((plane) => {
+          const options = AIRPORTS.filter((a) => a.id !== plane.currentAirportId);
+          const next = options[Math.floor(Math.random() * options.length)];
+          if (next) {
+            refreshed.assignRoute(plane.id, next.id, refreshed.autoTicketPrice);
+          }
+        });
+      },
       addMoney: (amount) => set((state) => ({ money: state.money + amount })),
       applyEmergencyFund: (planeId) => {
         const state = get();
@@ -367,6 +390,8 @@ export const useGameStore = create<GameState>()(
         completedFlights: Number.isFinite((persistedState as Partial<GameState>)?.completedFlights) ? (persistedState as Partial<GameState>).completedFlights as number : currentState.completedFlights,
         reputation: Number.isFinite((persistedState as Partial<GameState>)?.reputation) ? (persistedState as Partial<GameState>).reputation as number : currentState.reputation,
         emergencyFund: Number.isFinite((persistedState as Partial<GameState>)?.emergencyFund) ? (persistedState as Partial<GameState>).emergencyFund as number : currentState.emergencyFund,
+        autoDispatchEnabled: Boolean((persistedState as Partial<GameState>)?.autoDispatchEnabled),
+        autoTicketPrice: Number.isFinite((persistedState as Partial<GameState>)?.autoTicketPrice) ? (persistedState as Partial<GameState>).autoTicketPrice as number : currentState.autoTicketPrice,
       }),
     }
   )
