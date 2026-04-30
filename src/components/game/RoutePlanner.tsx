@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { AIRPORTS } from '@/data/airports';
-import { Navigation } from 'lucide-react';
+import { Navigation, Timer } from 'lucide-react';
+import { PLANE_MODELS } from '@/data/planes';
 
 export default function RoutePlanner() {
   const { planes, assignRoute } = useGameStore();
@@ -13,6 +14,8 @@ export default function RoutePlanner() {
 
   const idlePlanes = planes.filter(p => p.status === 'idle');
   const currentPlane = idlePlanes.find(p => p.id === selectedPlane);
+  const destinationAirport = AIRPORTS.find((a) => a.id === selectedDestination);
+  const planeModel = PLANE_MODELS.find((m) => m.id === currentPlane?.modelId);
 
   const handleDispatch = () => {
     if (!selectedPlane || !selectedDestination) return;
@@ -96,6 +99,15 @@ export default function RoutePlanner() {
               <p className="text-sm text-gray-500 mt-2">
                 Higher prices yield more money, assuming full capacity for now.
               </p>
+            </div>
+          )}
+
+
+          {currentPlane && destinationAirport && planeModel && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
+              <p className="font-semibold flex items-center gap-2"><Timer size={16} /> Estimasi Waktu</p>
+              <p className="mt-1">Dengan update baru, 1 detik nyata = 1 jam game.</p>
+              <p>Rute ini akan terasa sangat cepat saat dipantau live map.</p>
             </div>
           )}
 

@@ -11,15 +11,15 @@ export interface OwnedPlane {
   capacityLevel: number;
   fuelEfficiencyLevel: number;
   comfortLevel: number;
-  condition: number; // 0 to 100
+  condition: number;
   status: 'idle' | 'flying' | 'maintenance';
-  currentAirportId: string; // Where it is or where it departed from
+  currentAirportId: string;
   route?: {
     destinationAirportId: string;
-    distance: number; // km
-    progress: number; // km traveled
-    departureTime: number; // timestamp
-    estimatedArrivalTime: number; // timestamp
+    distance: number;
+    progress: number;
+    departureTime: number;
+    estimatedArrivalTime: number;
     income: number;
   };
 }
@@ -40,7 +40,7 @@ interface GameState {
   planes: OwnedPlane[];
   logs: FlightLog[];
   lastSaved: number;
-  timeMultiplier: 1 | 2 | 3 | 4 | 5;
+  gameHoursElapsed: number;
   setCompanyName: (name: string) => void;
   buyPlane: (modelId: string) => boolean;
   upgradePlane: (planeId: string, upgradeType: 'engine' | 'capacity' | 'fuelEfficiency' | 'comfort') => boolean;
@@ -48,13 +48,13 @@ interface GameState {
   assignRoute: (planeId: string, destinationId: string, ticketPrice: number) => boolean;
   processOfflineProgress: () => void;
   gameTick: () => void;
-  addMoney: (amount: number) => void; // for testing/cheats
-  setTimeMultiplier: (multiplier: 1 | 2 | 3 | 4 | 5) => void;
+  addMoney: (amount: number) => void;
 }
 
-// Haversine formula to calculate distance between two coordinates in km
+const REAL_SECONDS_TO_GAME_HOURS = 1;
+
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 6371; // Radius of the earth in km
+  const R = 6371;
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
   const a =
@@ -62,8 +62,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const d = R * c; // Distance in km
-  return d;
+  return R * c;
 }
 
 function deg2rad(deg: number) {
@@ -77,21 +76,20 @@ const UPGRADE_COSTS = {
   comfort: 12000,
 };
 
-const FUEL_PRICE_PER_KM = 2; // base cost
+const FUEL_PRICE_PER_KM = 2;
 const MAINTENANCE_COST_PER_PERCENT = 500;
 
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
-      money: 1000000, // Start with 1M
+      money: 1000000,
       companyName: 'My Airline',
       planes: [],
       logs: [],
       lastSaved: Date.now(),
-      timeMultiplier: 1,
+      gameHoursElapsed: 0,
 
       setCompanyName: (name) => set({ companyName: name }),
-      setTimeMultiplier: (multiplier) => set({ timeMultiplier: multiplier }),
 
       buyPlane: (modelId) => {
         const state = get();
@@ -108,7 +106,7 @@ export const useGameStore = create<GameState>()(
           comfortLevel: 1,
           condition: 100,
           status: 'idle',
-          currentAirportId: 'CGK', // Default start airport
+          currentAirportId: 'CGK',
         };
 
         set({
@@ -123,9 +121,9 @@ export const useGameStore = create<GameState>()(
         const cost = UPGRADE_COSTS[upgradeType === 'fuelEfficiency' ? 'fuel' : upgradeType];
         if (state.money < cost) return false;
 
-        set((state) => ({
-          money: state.money - cost,
-          planes: state.planes.map((p) => {
+        set((currentState) => ({
+          money: currentState.money - cost,
+          planes: currentState.planes.map((p) => {
             if (p.id !== planeId) return p;
             if (upgradeType === 'engine') return { ...p, engineLevel: p.engineLevel + 1 };
             if (upgradeType === 'capacity') return { ...p, capacityLevel: p.capacityLevel + 1 };
@@ -144,12 +142,11 @@ export const useGameStore = create<GameState>()(
 
         const damage = 100 - plane.condition;
         const cost = Math.floor(damage * MAINTENANCE_COST_PER_PERCENT);
-
         if (state.money < cost) return false;
 
-        set((state) => ({
-          money: state.money - cost,
-          planes: state.planes.map(p => p.id === planeId ? { ...p, condition: 100 } : p)
+        set((currentState) => ({
+          money: currentState.money - cost,
+          planes: currentState.planes.map(p => p.id === planeId ? { ...p, condition: 100 } : p)
         }));
         return true;
       },
@@ -164,43 +161,32 @@ export const useGameStore = create<GameState>()(
         if (!fromAirport || !toAirport || fromAirport.id === toAirport.id) return false;
 
         const model = PLANE_MODELS.find(m => m.id === plane.modelId);
-        if (!model) return false;
-
-        // Prevent flying if condition is too low
-        if (plane.condition < 10) return false;
+        if (!model || plane.condition < 10) return false;
 
         const distance = calculateDistance(fromAirport.lat, fromAirport.lng, toAirport.lat, toAirport.lng);
-        const speed = model.baseSpeed * (1 + (plane.engineLevel - 1) * 0.1); // 10% speed increase per level
+        const speed = model.baseSpeed * (1 + (plane.engineLevel - 1) * 0.1);
         const durationHours = distance / speed;
-        const durationMs = durationHours * 3600000;
+        const durationMs = (durationHours / REAL_SECONDS_TO_GAME_HOURS) * 1000;
 
         const now = Date.now();
-        const capacity = model.baseCapacity * (1 + (plane.capacityLevel - 1) * 0.2); // 20% capacity increase per level
-
-        // Calculate fuel cost
-        const fuelEfficiencyMultiplier = 1 / (1 + (plane.fuelEfficiencyLevel - 1) * 0.15); // 15% more efficient per level
+        const capacity = model.baseCapacity * (1 + (plane.capacityLevel - 1) * 0.2);
+        const fuelEfficiencyMultiplier = 1 / (1 + (plane.fuelEfficiencyLevel - 1) * 0.15);
         const fuelCost = Math.floor(distance * FUEL_PRICE_PER_KM * fuelEfficiencyMultiplier);
-
-        // Simple income calculation: passengers * ticketPrice (assuming full flight for now)
-        // Deduct fuel cost upfront or at the end. Let's do it at the end to allow net income calculation.
         const grossIncome = Math.floor(capacity * ticketPrice);
         const netIncome = grossIncome - fuelCost;
 
-        set((state) => ({
-          planes: state.planes.map(p => {
-            if (p.id !== planeId) return p;
-            return {
-              ...p,
-              status: 'flying',
-              route: {
-                destinationAirportId: destinationId,
-                distance,
-                progress: 0,
-                departureTime: now,
-                estimatedArrivalTime: now + durationMs,
-                income: netIncome
-              }
-            };
+        set((currentState) => ({
+          planes: currentState.planes.map(p => p.id !== planeId ? p : {
+            ...p,
+            status: 'flying',
+            route: {
+              destinationAirportId: destinationId,
+              distance,
+              progress: 0,
+              departureTime: now,
+              estimatedArrivalTime: now + durationMs,
+              income: netIncome
+            }
           })
         }));
         return true;
@@ -209,72 +195,63 @@ export const useGameStore = create<GameState>()(
       processOfflineProgress: () => {
         const state = get();
         const now = Date.now();
-        const timeMultiplier = state.timeMultiplier;
+        const elapsedRealMs = Math.max(0, now - state.lastSaved);
+        const effectiveElapsedHours = (elapsedRealMs / 1000) * REAL_SECONDS_TO_GAME_HOURS;
+
         let addedMoney = 0;
         const newLogs: FlightLog[] = [];
 
-        const updatedPlanes = state.planes.map(plane => {
-          if (plane.status === 'flying' && plane.route) {
-            const model = PLANE_MODELS.find(m => m.id === plane.modelId);
-            const speed = (model?.baseSpeed || 500) * (1 + (plane.engineLevel - 1) * 0.1);
-            const timeElapsedMs = now - plane.route.departureTime;
-            const effectiveElapsedHours = (timeElapsedMs * timeMultiplier) / 3600000;
-            const currentProgress = effectiveElapsedHours * speed;
+        const updatedPlanes = state.planes.map((plane) => {
+          if (plane.status !== 'flying' || !plane.route) return plane;
 
-            if (currentProgress >= plane.route.distance) {
-              // Flight finished
-              addedMoney += plane.route.income;
-              newLogs.push({
-                id: Math.random().toString(36).substring(7),
-                planeId: plane.id,
-                planeName: plane.name,
-                from: plane.currentAirportId,
-                to: plane.route.destinationAirportId,
-                income: plane.route.income,
-                timestamp: now
-              });
+          const model = PLANE_MODELS.find(m => m.id === plane.modelId);
+          const speed = (model?.baseSpeed || 500) * (1 + (plane.engineLevel - 1) * 0.1);
+          const addedProgress = speed * effectiveElapsedHours;
+          const currentProgress = plane.route.progress + addedProgress;
 
-              // Degrade condition based on distance flown (roughly 1% per 500km)
-              const conditionDegradation = Math.min(plane.condition, plane.route.distance / 500);
-              const newCondition = Math.max(0, plane.condition - conditionDegradation);
+          if (currentProgress >= plane.route.distance) {
+            addedMoney += plane.route.income;
+            newLogs.push({
+              id: Math.random().toString(36).substring(7),
+              planeId: plane.id,
+              planeName: plane.name,
+              from: plane.currentAirportId,
+              to: plane.route.destinationAirportId,
+              income: plane.route.income,
+              timestamp: now
+            });
 
-              return {
-                ...plane,
-                status: 'idle',
-                currentAirportId: plane.route.destinationAirportId,
-                condition: newCondition,
-                route: undefined
-              } as OwnedPlane;
-            } else {
-              // Flight still in progress, update progress distance
-              return {
-                ...plane,
-                route: {
-                  ...plane.route,
-                  progress: Math.min(currentProgress, plane.route.distance)
-                }
-              };
-            }
+            const conditionDegradation = Math.min(plane.condition, plane.route.distance / 500);
+            return {
+              ...plane,
+              status: 'idle',
+              currentAirportId: plane.route.destinationAirportId,
+              condition: Math.max(0, plane.condition - conditionDegradation),
+              route: undefined
+            } as OwnedPlane;
           }
-          return plane;
+
+          return {
+            ...plane,
+            route: {
+              ...plane.route,
+              progress: Math.min(currentProgress, plane.route.distance)
+            }
+          };
         });
 
         set({
           planes: updatedPlanes,
           money: state.money + addedMoney,
-          logs: [...newLogs, ...state.logs].slice(0, 50), // keep last 50 logs
-          lastSaved: now
+          logs: [...newLogs, ...state.logs].slice(0, 50),
+          lastSaved: now,
+          gameHoursElapsed: state.gameHoursElapsed + effectiveElapsedHours,
         });
       },
 
-      gameTick: () => {
-        get().processOfflineProgress();
-      },
-
+      gameTick: () => get().processOfflineProgress(),
       addMoney: (amount) => set((state) => ({ money: state.money + amount })),
     }),
-    {
-      name: 'airline-tycoon-storage',
-    }
+    { name: 'airline-tycoon-storage' }
   )
 );
