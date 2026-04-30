@@ -21,12 +21,15 @@ export const AIRPORTS: Airport[] = [
   { id: 'HKG', name: 'Hong Kong Int.', city: 'Hong Kong', country: 'Hong Kong', lat: 22.3080, lng: 113.9185 },
   { id: 'DEL', name: 'Indira Gandhi', city: 'New Delhi', country: 'India', lat: 28.5562, lng: 77.1000 },
   { id: 'BOM', name: 'Chhatrapati Shivaji', city: 'Mumbai', country: 'India', lat: 19.0896, lng: 72.8656 },
+  { id: 'PKX', name: 'Beijing Daxing', city: 'Beijing', country: 'China', lat: 39.5098, lng: 116.4105 },
+  { id: 'PVG', name: 'Pudong Int.', city: 'Shanghai', country: 'China', lat: 31.1443, lng: 121.8083 },
 
   // Middle East
   { id: 'DXB', name: 'Dubai Int.', city: 'Dubai', country: 'UAE', lat: 25.2532, lng: 55.3657 },
   { id: 'DOH', name: 'Hamad Int.', city: 'Doha', country: 'Qatar', lat: 25.2731, lng: 51.6080 },
   { id: 'JED', name: 'King Abdulaziz', city: 'Jeddah', country: 'Saudi Arabia', lat: 21.6796, lng: 39.1565 },
   { id: 'IST', name: 'Istanbul', city: 'Istanbul', country: 'Turkey', lat: 41.2590, lng: 28.7404 },
+  { id: 'AUH', name: 'Abu Dhabi Int.', city: 'Abu Dhabi', country: 'UAE', lat: 24.4330, lng: 54.6511 },
 
   // Europe
   { id: 'LHR', name: 'Heathrow', city: 'London', country: 'UK', lat: 51.4700, lng: -0.4543 },
@@ -36,6 +39,8 @@ export const AIRPORTS: Airport[] = [
   { id: 'MAD', name: 'Adolfo Suárez', city: 'Madrid', country: 'Spain', lat: 40.4983, lng: -3.5676 },
   { id: 'FCO', name: 'Leonardo da Vinci', city: 'Rome', country: 'Italy', lat: 41.7999, lng: 12.2462 },
   { id: 'SVO', name: 'Sheremetyevo', city: 'Moscow', country: 'Russia', lat: 55.9726, lng: 37.4146 },
+  { id: 'MUC', name: 'Munich', city: 'Munich', country: 'Germany', lat: 48.3538, lng: 11.7861 },
+  { id: 'ZRH', name: 'Zurich', city: 'Zurich', country: 'Switzerland', lat: 47.4581, lng: 8.5555 },
 
   // Americas
   { id: 'JFK', name: 'John F. Kennedy', city: 'New York', country: 'USA', lat: 40.6413, lng: -73.7781 },
@@ -47,15 +52,20 @@ export const AIRPORTS: Airport[] = [
   { id: 'GRU', name: 'Guarulhos', city: 'São Paulo', country: 'Brazil', lat: -23.4356, lng: -46.4731 },
   { id: 'EZE', name: 'Ministro Pistarini', city: 'Buenos Aires', country: 'Argentina', lat: -34.8222, lng: -58.5358 },
   { id: 'BOG', name: 'El Dorado', city: 'Bogotá', country: 'Colombia', lat: 4.7016, lng: -74.1469 },
+  { id: 'SFO', name: 'San Francisco Int.', city: 'San Francisco', country: 'USA', lat: 37.6213, lng: -122.3790 },
+  { id: 'SEA', name: 'Seattle-Tacoma', city: 'Seattle', country: 'USA', lat: 47.4502, lng: -122.3088 },
+  { id: 'MIA', name: 'Miami Int.', city: 'Miami', country: 'USA', lat: 25.7959, lng: -80.2870 },
 
   // Africa
   { id: 'JNB', name: 'O. R. Tambo', city: 'Johannesburg', country: 'South Africa', lat: -26.1367, lng: 28.2460 },
   { id: 'CAI', name: 'Cairo Int.', city: 'Cairo', country: 'Egypt', lat: 30.1219, lng: 31.4056 },
   { id: 'LOS', name: 'Murtala Muhammed', city: 'Lagos', country: 'Nigeria', lat: 6.5774, lng: 3.3215 },
   { id: 'NBO', name: 'Jomo Kenyatta', city: 'Nairobi', country: 'Kenya', lat: -1.3192, lng: 36.9278 },
+  { id: 'ADD', name: 'Bole Int.', city: 'Addis Ababa', country: 'Ethiopia', lat: 8.9779, lng: 38.7993 },
 
   // Oceania
   { id: 'SYD', name: 'Kingsford Smith', city: 'Sydney', country: 'Australia', lat: -33.9461, lng: 151.1772 },
   { id: 'MEL', name: 'Melbourne', city: 'Melbourne', country: 'Australia', lat: -37.6690, lng: 144.8410 },
   { id: 'AKL', name: 'Auckland', city: 'Auckland', country: 'New Zealand', lat: -37.0082, lng: 174.7850 },
+  { id: 'PER', name: 'Perth', city: 'Perth', country: 'Australia', lat: -31.9403, lng: 115.9672 },
 ];
