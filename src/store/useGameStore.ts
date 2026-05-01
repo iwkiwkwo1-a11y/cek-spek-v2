@@ -52,6 +52,7 @@ interface GameState {
   autoTicketPrice: number;
   autoRepairEnabled: boolean;
   autoRepairThreshold: number;
+  claimedMilestones: number[];
   setCompanyName: (name: string) => void;
   initializeProfile: (playerName: string, companyName: string, playerSkill: "operations" | "finance" | "engineering" | "marketing") => void;
   buyPlane: (modelId: string) => boolean;
@@ -68,6 +69,7 @@ interface GameState {
   setAutoTicketPrice: (price: number) => void;
   setAutoRepair: (enabled: boolean) => void;
   setAutoRepairThreshold: (threshold: number) => void;
+  claimMilestoneReward: (targetFlights: number) => boolean;
 }
 
 const REAL_SECONDS_TO_GAME_HOURS = 1;
@@ -121,6 +123,7 @@ export const useGameStore = create<GameState>()(
       autoTicketPrice: 500,
       autoRepairEnabled: false,
       autoRepairThreshold: 65,
+      claimedMilestones: [],
 
       setCompanyName: (name) => set({ companyName: name }),
       setAutoDispatch: (enabled) => set({ autoDispatchEnabled: enabled }),
@@ -355,6 +358,21 @@ export const useGameStore = create<GameState>()(
         });
       },
 
+
+      claimMilestoneReward: (targetFlights) => {
+        const state = get();
+        if (state.claimedMilestones.includes(targetFlights)) return false;
+        if (state.completedFlights < targetFlights) return false;
+
+        const reward = targetFlights * 1200;
+        set((currentState) => ({
+          money: currentState.money + reward,
+          reputation: Math.min(100, currentState.reputation + 1.5),
+          claimedMilestones: [...currentState.claimedMilestones, targetFlights],
+        }));
+        return true;
+      },
+
       gameTick: () => {
         const state = get();
         state.processOfflineProgress();
@@ -411,6 +429,7 @@ export const useGameStore = create<GameState>()(
         autoTicketPrice: Number.isFinite((persistedState as Partial<GameState>)?.autoTicketPrice) ? (persistedState as Partial<GameState>).autoTicketPrice as number : currentState.autoTicketPrice,
         autoRepairEnabled: Boolean((persistedState as Partial<GameState>)?.autoRepairEnabled),
         autoRepairThreshold: Number.isFinite((persistedState as Partial<GameState>)?.autoRepairThreshold) ? (persistedState as Partial<GameState>).autoRepairThreshold as number : currentState.autoRepairThreshold,
+        claimedMilestones: Array.isArray((persistedState as Partial<GameState>)?.claimedMilestones) ? (persistedState as Partial<GameState>).claimedMilestones as number[] : currentState.claimedMilestones,
       }),
     }
   )

@@ -6,7 +6,7 @@ import { Plane, DollarSign, Activity, Clock, ShieldAlert, Gauge } from 'lucide-r
 import { AIRPORTS } from '@/data/airports';
 
 export default function Dashboard() {
-  const { money, companyName, planes, logs, gameHoursElapsed, completedFlights, reputation, emergencyFund } = useGameStore();
+  const { money, companyName, planes, logs, gameHoursElapsed, completedFlights, reputation, emergencyFund, claimedMilestones, claimMilestoneReward } = useGameStore();
 
   const activeFlights = planes.filter(p => p.status === 'flying').length;
   const activeFlightDetails = planes.filter(p => p.status === 'flying' && p.route);
@@ -24,7 +24,7 @@ export default function Dashboard() {
       <h1 className="text-3xl font-bold">{companyName} Dashboard</h1>
 
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-        <p className="text-xs font-bold text-indigo-500 mb-1">VERSION 2.4</p>
+        <p className="text-xs font-bold text-indigo-500 mb-1">VERSION 2.5</p>
         <p className="text-indigo-700 font-semibold">Mega Time Update Active</p>
         <p className="text-sm text-indigo-600 mt-1">1 detik dunia nyata = 1 jam di game. Operasional sekarang jauh lebih cepat.</p>
       </div>
@@ -113,8 +113,32 @@ export default function Dashboard() {
         </div>
       </div>
 
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-xl font-bold mb-3">v2.4 Release Notes</h2>
+        <h2 className="text-xl font-bold mb-3">Milestone Rewards v2.5</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[10, 25, 50].map((target) => {
+            const claimed = claimedMilestones.includes(target);
+            const unlocked = completedFlights >= target;
+            return (
+              <div key={target} className="border rounded-lg p-3">
+                <p className="font-semibold">{target} Flights</p>
+                <p className="text-sm text-gray-500 mb-2">Reward: ${(target * 1200).toLocaleString()}</p>
+                <button
+                  onClick={() => claimMilestoneReward(target)}
+                  disabled={!unlocked || claimed}
+                  className="w-full py-2 rounded bg-indigo-600 text-white disabled:bg-gray-300"
+                >
+                  {claimed ? 'Claimed' : unlocked ? 'Claim Reward' : 'Locked'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-xl font-bold mb-3">v2.5 Release Notes</h2>
         <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
           <li>Skill founder kini memengaruhi ekonomi: marketing/finance boost revenue, operations tekan fuel cost.</li>
           <li>Engineering memberi diskon upgrade + maintenance untuk strategi growth jangka panjang.</li>
