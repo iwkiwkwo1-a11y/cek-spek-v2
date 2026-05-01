@@ -50,6 +50,8 @@ interface GameState {
   emergencyFund: number;
   autoDispatchEnabled: boolean;
   autoTicketPrice: number;
+  autoRepairEnabled: boolean;
+  autoRepairThreshold: number;
   setCompanyName: (name: string) => void;
   initializeProfile: (playerName: string, companyName: string, playerSkill: "operations" | "finance" | "engineering" | "marketing") => void;
   buyPlane: (modelId: string) => boolean;
@@ -64,6 +66,8 @@ interface GameState {
   applyEmergencyFund: (planeId: string) => boolean;
   setAutoDispatch: (enabled: boolean) => void;
   setAutoTicketPrice: (price: number) => void;
+  setAutoRepair: (enabled: boolean) => void;
+  setAutoRepairThreshold: (threshold: number) => void;
 }
 
 const REAL_SECONDS_TO_GAME_HOURS = 1;
@@ -115,10 +119,14 @@ export const useGameStore = create<GameState>()(
       emergencyFund: 0,
       autoDispatchEnabled: false,
       autoTicketPrice: 500,
+      autoRepairEnabled: false,
+      autoRepairThreshold: 65,
 
       setCompanyName: (name) => set({ companyName: name }),
       setAutoDispatch: (enabled) => set({ autoDispatchEnabled: enabled }),
       setAutoTicketPrice: (price) => set({ autoTicketPrice: Math.max(50, price) }),
+      setAutoRepair: (enabled) => set({ autoRepairEnabled: enabled }),
+      setAutoRepairThreshold: (threshold) => set({ autoRepairThreshold: Math.max(30, Math.min(95, threshold)) }),
       initializeProfile: (playerName, companyName, playerSkill) => set({ playerName, companyName, playerSkill }),
 
       buyPlane: (modelId) => {
@@ -313,7 +321,7 @@ export const useGameStore = create<GameState>()(
               timestamp: now
             });
 
-            const conditionDegradation = Math.min(plane.condition, plane.route.distance / 500);
+            const conditionDegradation = Math.min(plane.condition, plane.route.distance / 1500);
             completedFlights += 1;
             reputationDelta += plane.condition > 70 ? 0.2 : -0.25;
             if (state.playerSkill === "operations") reputationDelta += 0.05;
@@ -353,6 +361,15 @@ export const useGameStore = create<GameState>()(
 
         if (!state.autoDispatchEnabled) return;
         const refreshed = get();
+
+        if (refreshed.autoRepairEnabled) {
+          refreshed.planes
+            .filter((p) => p.status === "idle" && p.condition < refreshed.autoRepairThreshold)
+            .forEach((p) => {
+              refreshed.maintainPlane(p.id);
+            });
+        }
+
         const idlePlanes = refreshed.planes.filter((p) => p.status === "idle");
 
         idlePlanes.forEach((plane) => {
@@ -392,6 +409,8 @@ export const useGameStore = create<GameState>()(
         emergencyFund: Number.isFinite((persistedState as Partial<GameState>)?.emergencyFund) ? (persistedState as Partial<GameState>).emergencyFund as number : currentState.emergencyFund,
         autoDispatchEnabled: Boolean((persistedState as Partial<GameState>)?.autoDispatchEnabled),
         autoTicketPrice: Number.isFinite((persistedState as Partial<GameState>)?.autoTicketPrice) ? (persistedState as Partial<GameState>).autoTicketPrice as number : currentState.autoTicketPrice,
+        autoRepairEnabled: Boolean((persistedState as Partial<GameState>)?.autoRepairEnabled),
+        autoRepairThreshold: Number.isFinite((persistedState as Partial<GameState>)?.autoRepairThreshold) ? (persistedState as Partial<GameState>).autoRepairThreshold as number : currentState.autoRepairThreshold,
       }),
     }
   )

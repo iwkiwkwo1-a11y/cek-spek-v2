@@ -12,7 +12,7 @@ const getUpgradeCost = (level: number, type: 'engine' | 'capacity' | 'fuelEffici
 };
 
 export default function Workshop() {
-  const { money, planes, emergencyFund, upgradePlane, maintainPlane, overhaulPlane, refurbishPlane, applyEmergencyFund } = useGameStore();
+  const { money, planes, emergencyFund, autoRepairEnabled, autoRepairThreshold, setAutoRepair, setAutoRepairThreshold, upgradePlane, maintainPlane, overhaulPlane, refurbishPlane, applyEmergencyFund } = useGameStore();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const handle = (ok: boolean, success: string, fail: string) => setToast({ message: ok ? success : fail, type: ok ? 'success' : 'error' });
 
@@ -25,6 +25,13 @@ export default function Workshop() {
             <div className="text-xl font-bold text-green-600">Balance: ${money.toLocaleString()}</div>
             <div className="text-sm font-semibold text-cyan-600">Emergency Fund: ${emergencyFund.toLocaleString()}</div>
           </div>
+        </div>
+
+
+        <div className="bg-white border rounded-xl p-4 flex flex-wrap items-center gap-4">
+          <p className="font-semibold">Auto Repair System</p>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={autoRepairEnabled} onChange={(e) => setAutoRepair(e.target.checked)} /> Enable</label>
+          <div className="flex items-center gap-2 text-sm"><span>Threshold</span><input type="number" min="30" max="95" value={autoRepairThreshold} onChange={(e) => setAutoRepairThreshold(Number(e.target.value))} className="w-20 border rounded p-1" /><span>%</span></div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
