@@ -53,6 +53,8 @@ interface GameState {
   autoRepairEnabled: boolean;
   autoRepairThreshold: number;
   claimedMilestones: number[];
+  isPaused: boolean;
+  bailoutUsed: boolean;
   setCompanyName: (name: string) => void;
   initializeProfile: (playerName: string, companyName: string, playerSkill: "operations" | "finance" | "engineering" | "marketing") => void;
   buyPlane: (modelId: string) => boolean;
@@ -70,6 +72,8 @@ interface GameState {
   setAutoRepair: (enabled: boolean) => void;
   setAutoRepairThreshold: (threshold: number) => void;
   claimMilestoneReward: (targetFlights: number) => boolean;
+  setPaused: (paused: boolean) => void;
+  requestBailout: () => boolean;
 }
 
 const REAL_SECONDS_TO_GAME_HOURS = 1;
@@ -124,6 +128,8 @@ export const useGameStore = create<GameState>()(
       autoRepairEnabled: false,
       autoRepairThreshold: 65,
       claimedMilestones: [],
+      isPaused: false,
+      bailoutUsed: false,
 
       setCompanyName: (name) => set({ companyName: name }),
       setAutoDispatch: (enabled) => set({ autoDispatchEnabled: enabled }),
@@ -359,6 +365,21 @@ export const useGameStore = create<GameState>()(
       },
 
 
+      setPaused: (paused) => set({ isPaused: paused }),
+
+      requestBailout: () => {
+        const state = get();
+        if (state.bailoutUsed) return false;
+        if (state.money > 0) return false;
+
+        set((currentState) => ({
+          money: currentState.money + 500000,
+          reputation: Math.max(0, currentState.reputation - 10),
+          bailoutUsed: true,
+        }));
+        return true;
+      },
+
       claimMilestoneReward: (targetFlights) => {
         const state = get();
         if (state.claimedMilestones.includes(targetFlights)) return false;
@@ -375,6 +396,7 @@ export const useGameStore = create<GameState>()(
 
       gameTick: () => {
         const state = get();
+        if (state.isPaused) return;
         state.processOfflineProgress();
 
         if (!state.autoDispatchEnabled) return;
@@ -430,6 +452,8 @@ export const useGameStore = create<GameState>()(
         autoRepairEnabled: Boolean((persistedState as Partial<GameState>)?.autoRepairEnabled),
         autoRepairThreshold: Number.isFinite((persistedState as Partial<GameState>)?.autoRepairThreshold) ? (persistedState as Partial<GameState>).autoRepairThreshold as number : currentState.autoRepairThreshold,
         claimedMilestones: Array.isArray((persistedState as Partial<GameState>)?.claimedMilestones) ? (persistedState as Partial<GameState>).claimedMilestones as number[] : currentState.claimedMilestones,
+        isPaused: Boolean((persistedState as Partial<GameState>)?.isPaused),
+        bailoutUsed: Boolean((persistedState as Partial<GameState>)?.bailoutUsed),
       }),
     }
   )

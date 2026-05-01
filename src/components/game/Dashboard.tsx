@@ -6,7 +6,7 @@ import { Plane, DollarSign, Activity, Clock, ShieldAlert, Gauge } from 'lucide-r
 import { AIRPORTS } from '@/data/airports';
 
 export default function Dashboard() {
-  const { money, companyName, planes, logs, gameHoursElapsed, completedFlights, reputation, emergencyFund, claimedMilestones, claimMilestoneReward } = useGameStore();
+  const { money, companyName, planes, logs, gameHoursElapsed, completedFlights, reputation, emergencyFund, claimedMilestones, claimMilestoneReward, isPaused, setPaused, requestBailout, bailoutUsed } = useGameStore();
 
   const activeFlights = planes.filter(p => p.status === 'flying').length;
   const activeFlightDetails = planes.filter(p => p.status === 'flying' && p.route);
@@ -24,9 +24,17 @@ export default function Dashboard() {
       <h1 className="text-3xl font-bold">{companyName} Dashboard</h1>
 
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-        <p className="text-xs font-bold text-indigo-500 mb-1">VERSION 2.5</p>
+        <p className="text-xs font-bold text-indigo-500 mb-1">VERSION 3.0</p>
         <p className="text-indigo-700 font-semibold">Mega Time Update Active</p>
         <p className="text-sm text-indigo-600 mt-1">1 detik dunia nyata = 1 jam di game. Operasional sekarang jauh lebih cepat.</p>
+      </div>
+
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-wrap gap-3 items-center">
+        <p className="font-semibold">Simulation Control v3.0</p>
+        <button onClick={() => setPaused(!isPaused)} className="px-3 py-2 rounded bg-slate-800 text-white">{isPaused ? 'Resume' : 'Pause'} Simulation</button>
+        <button onClick={() => requestBailout()} disabled={bailoutUsed || money > 0} className="px-3 py-2 rounded bg-amber-600 text-white disabled:bg-gray-300">Request Bailout</button>
+        {isPaused && <span className="text-sm text-amber-600">Simulation is paused</span>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-8 gap-4">
@@ -138,9 +146,9 @@ export default function Dashboard() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-xl font-bold mb-3">v2.5 Release Notes</h2>
+        <h2 className="text-xl font-bold mb-3">v3.0 Release Notes</h2>
         <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
-          <li>Skill founder kini memengaruhi ekonomi: marketing/finance boost revenue, operations tekan fuel cost.</li>
+          <li>Added simulation controls (pause/resume) and one-time bailout to keep long runs alive.</li>
           <li>Engineering memberi diskon upgrade + maintenance untuk strategi growth jangka panjang.</li>
           <li>Ritme simulasi tetap 1 detik nyata = 1 jam game untuk gameplay yang lebih dinamis.</li>
         </ul>
