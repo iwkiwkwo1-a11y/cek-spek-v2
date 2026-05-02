@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MAX_UPGRADE_LEVEL, useGameStore } from '@/store/useGameStore';
 import { PLANE_MODELS } from '@/data/planes';
 import { Wrench, Zap, Users, Fuel, Sofa, ShieldAlert, Sparkles, TrendingUp } from 'lucide-react';
@@ -12,26 +12,31 @@ const getUpgradeCost = (level: number, type: 'engine' | 'capacity' | 'fuelEffici
 };
 
 export default function Workshop() {
-  const { money, planes, emergencyFund, autoRepairEnabled, autoRepairThreshold, setAutoRepair, setAutoRepairThreshold, upgradePlane, maintainPlane, overhaulPlane, refurbishPlane, applyEmergencyFund } = useGameStore();
+  const { money, planes, emergencyFund, autoRepairEnabled, autoRepairThreshold, setAutoRepair, setAutoRepairThreshold, setWorkshopMode, upgradePlane, maintainPlane, overhaulPlane, refurbishPlane, applyEmergencyFund } = useGameStore();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const handle = (ok: boolean, success: string, fail: string) => setToast({ message: ok ? success : fail, type: ok ? 'success' : 'error' });
+
+  useEffect(() => {
+    setWorkshopMode(true);
+    return () => setWorkshopMode(false);
+  }, [setWorkshopMode]);
 
   return (
     <>
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Engineering & Maintenance Hub v3.1</h1>
+          <h1 className="text-3xl font-bold">Engineering & Maintenance Hub v3.2</h1>
           <div className="text-right">
             <div className="text-xl font-bold text-green-600">Balance: ${money.toLocaleString()}</div>
             <div className="text-sm font-semibold text-cyan-600">Emergency Fund: ${emergencyFund.toLocaleString()}</div>
           </div>
         </div>
 
-
         <div className="bg-white border rounded-xl p-4 flex flex-wrap items-center gap-4">
           <p className="font-semibold">Auto Repair System</p>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={autoRepairEnabled} onChange={(e) => setAutoRepair(e.target.checked)} /> Enable</label>
           <div className="flex items-center gap-2 text-sm"><span>Threshold</span><input type="number" min="30" max="95" value={autoRepairThreshold} onChange={(e) => setAutoRepairThreshold(Number(e.target.value))} className="w-20 border rounded p-1" /><span>%</span></div>
+          <p className="text-xs text-amber-600">Mode bengkel aktif: auto-dispatch sementara dihentikan biar upgrade aman.</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -42,12 +47,21 @@ export default function Workshop() {
             const capacityCost = getUpgradeCost(plane.capacityLevel, 'capacity');
             const fuelCost = getUpgradeCost(plane.fuelEfficiencyLevel, 'fuelEfficiency');
             const comfortCost = getUpgradeCost(plane.comfortLevel, 'comfort');
+            const seatTotal = Math.floor(model.baseCapacity * (1 + (plane.capacityLevel - 1) * 0.2));
+            const speedTotal = Math.floor(model.baseSpeed * (1 + (plane.engineLevel - 1) * 0.1));
             const isMaxed = plane.engineLevel >= MAX_UPGRADE_LEVEL && plane.capacityLevel >= MAX_UPGRADE_LEVEL && plane.fuelEfficiencyLevel >= MAX_UPGRADE_LEVEL && plane.comfortLevel >= MAX_UPGRADE_LEVEL;
 
             return (
               <div key={plane.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-xl font-bold">{plane.name}</h3>
-                <p className="text-sm text-gray-500 mb-3">{model.name}</p><div className="mb-3"><div className="h-2 bg-gray-200 rounded"><div className="h-2 bg-emerald-500 rounded" style={{ width: `${plane.condition}%` }} /></div><p className="text-xs text-gray-500 mt-1">Condition {plane.condition.toFixed(0)}%</p></div>
+                <p className="text-sm text-gray-500 mb-2">{model.name}</p>
+                <div className="mb-3"><div className="h-2 bg-gray-200 rounded"><div className="h-2 bg-emerald-500 rounded" style={{ width: `${plane.condition}%` }} /></div><p className="text-xs text-gray-500 mt-1">Condition {plane.condition.toFixed(0)}%</p></div>
+                <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                  <p>Engine Lv {plane.engineLevel}/{MAX_UPGRADE_LEVEL} · {speedTotal} km/h</p>
+                  <p>Seat Lv {plane.capacityLevel}/{MAX_UPGRADE_LEVEL} · {seatTotal} seats</p>
+                  <p>Fuel Lv {plane.fuelEfficiencyLevel}/{MAX_UPGRADE_LEVEL}</p>
+                  <p>Comfort Lv {plane.comfortLevel}/{MAX_UPGRADE_LEVEL}</p>
+                </div>
                 <div className="space-y-2">
                   <button onClick={() => handle(maintainPlane(plane.id), 'Quick repair completed!', 'Quick repair gagal.')} className="w-full p-2 bg-red-50 rounded text-left"><ShieldAlert size={16} className="inline mr-2" />Quick Repair</button>
                   <button onClick={() => handle(overhaulPlane(plane.id), 'Full overhaul selesai!', 'Overhaul gagal.')} className="w-full p-2 bg-amber-50 rounded text-left"><Wrench size={16} className="inline mr-2" />Full Overhaul</button>

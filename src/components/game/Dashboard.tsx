@@ -24,7 +24,7 @@ export default function Dashboard() {
       <h1 className="text-3xl font-bold">{companyName} Dashboard</h1>
 
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-        <p className="text-xs font-bold text-indigo-500 mb-1">VERSION 3.1</p>
+        <p className="text-xs font-bold text-indigo-500 mb-1">VERSION 3.2</p>
         <p className="text-indigo-700 font-semibold">Mega Time Update Active</p>
         <p className="text-sm text-indigo-600 mt-1">1 detik dunia nyata = 1 jam di game. Operasional sekarang jauh lebih cepat.</p>
       </div>
@@ -146,7 +146,7 @@ export default function Dashboard() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-xl font-bold mb-3">v3.1 Release Notes</h2>
+        <h2 className="text-xl font-bold mb-3">v3.2 Release Notes</h2>
         <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
           <li>Added simulation controls (pause/resume) and one-time bailout to keep long runs alive.</li>
           <li>Engineering memberi diskon upgrade + maintenance untuk strategi growth jangka panjang.</li>

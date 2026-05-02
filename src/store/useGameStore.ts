@@ -55,6 +55,7 @@ interface GameState {
   claimedMilestones: number[];
   isPaused: boolean;
   bailoutUsed: boolean;
+  workshopMode: boolean;
   setCompanyName: (name: string) => void;
   initializeProfile: (playerName: string, companyName: string, playerSkill: "operations" | "finance" | "engineering" | "marketing") => void;
   buyPlane: (modelId: string) => boolean;
@@ -75,6 +76,7 @@ interface GameState {
   setPaused: (paused: boolean) => void;
   requestBailout: () => boolean;
   resetAccount: () => void;
+  setWorkshopMode: (enabled: boolean) => void;
 }
 
 const REAL_SECONDS_TO_GAME_HOURS = 1;
@@ -131,6 +133,7 @@ export const useGameStore = create<GameState>()(
       claimedMilestones: [],
       isPaused: false,
       bailoutUsed: false,
+      workshopMode: false,
 
       setCompanyName: (name) => set({ companyName: name }),
       setAutoDispatch: (enabled) => set({ autoDispatchEnabled: enabled }),
@@ -367,6 +370,7 @@ export const useGameStore = create<GameState>()(
 
 
       setPaused: (paused) => set({ isPaused: paused }),
+      setWorkshopMode: (enabled) => set({ workshopMode: enabled }),
 
       resetAccount: () => set({
         money: 10000000,
@@ -387,6 +391,7 @@ export const useGameStore = create<GameState>()(
         claimedMilestones: [],
         isPaused: false,
         bailoutUsed: false,
+        workshopMode: false,
       }),
 
       requestBailout: () => {
@@ -421,7 +426,7 @@ export const useGameStore = create<GameState>()(
         if (state.isPaused) return;
         state.processOfflineProgress();
 
-        if (!state.autoDispatchEnabled) return;
+        if (!state.autoDispatchEnabled || state.workshopMode) return;
         const refreshed = get();
 
         if (refreshed.autoRepairEnabled) {
@@ -476,6 +481,7 @@ export const useGameStore = create<GameState>()(
         claimedMilestones: Array.isArray((persistedState as Partial<GameState>)?.claimedMilestones) ? (persistedState as Partial<GameState>).claimedMilestones as number[] : currentState.claimedMilestones,
         isPaused: Boolean((persistedState as Partial<GameState>)?.isPaused),
         bailoutUsed: Boolean((persistedState as Partial<GameState>)?.bailoutUsed),
+        workshopMode: false,
       }),
     }
   )
