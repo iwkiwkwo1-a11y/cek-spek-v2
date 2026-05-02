@@ -80,7 +80,7 @@ export default function Workshop() {
           })}
         </div>
       </div>
-      {toast && <GameToast message={toast.message} type={toast.type} />}
+      {toast && <GameToast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
     </>
   );
 }
