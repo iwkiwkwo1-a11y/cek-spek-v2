@@ -57,6 +57,8 @@ interface GameState {
   isPaused: boolean;
   bailoutUsed: boolean;
   workshopMode: boolean;
+  demandIndex: number;
+  lastDemandUpdateHours: number;
   setCompanyName: (name: string) => void;
   initializeProfile: (playerName: string, companyName: string, playerSkill: "operations" | "finance" | "engineering" | "marketing") => void;
   buyPlane: (modelId: string) => boolean;
@@ -79,6 +81,7 @@ interface GameState {
   requestBailout: () => boolean;
   resetAccount: () => void;
   setWorkshopMode: (enabled: boolean) => void;
+  refreshDemand: () => void;
 }
 
 const REAL_SECONDS_TO_GAME_HOURS = 1;
@@ -137,6 +140,8 @@ export const useGameStore = create<GameState>()(
       isPaused: false,
       bailoutUsed: false,
       workshopMode: false,
+      demandIndex: 1,
+      lastDemandUpdateHours: 0,
 
       setCompanyName: (name) => set({ companyName: name }),
       setAutoDispatch: (enabled) => set({ autoDispatchEnabled: enabled }),
@@ -283,7 +288,7 @@ export const useGameStore = create<GameState>()(
         const comfortBonus = 1 + (plane.comfortLevel - 1) * 0.05;
         const conditionPenalty = Math.max(0.75, plane.condition / 100);
         const demandFactor = comfortBonus * conditionPenalty * (0.8 + safeReputation / 250);
-        const grossIncome = Math.floor(capacity * ticketPrice * demandFactor * skillRevenueBonus);
+        const grossIncome = Math.floor(capacity * ticketPrice * demandFactor * skillRevenueBonus * state.demandIndex);
         const netIncome = grossIncome - fuelCost;
 
         set((currentState) => ({
@@ -315,6 +320,13 @@ export const useGameStore = create<GameState>()(
         let completedFlights = 0;
         let reputationDelta = 0;
         const newLogs: FlightLog[] = [];
+        const projectedHours = (Number.isFinite(state.gameHoursElapsed) ? state.gameHoursElapsed : 0) + effectiveElapsedHours;
+        let nextDemand = state.demandIndex;
+        let nextDemandCheckpoint = state.lastDemandUpdateHours;
+        while (projectedHours - nextDemandCheckpoint >= 24) {
+          nextDemand = Math.max(0.8, Math.min(1.25, nextDemand + (Math.random() - 0.5) * 0.08));
+          nextDemandCheckpoint += 24;
+        }
 
         const updatedPlanes = state.planes.map((plane) => {
           if (plane.status !== 'flying' || !plane.route) return plane;
@@ -365,7 +377,9 @@ export const useGameStore = create<GameState>()(
           money: state.money + addedMoney,
           logs: [...newLogs, ...state.logs].slice(0, 50),
           lastSaved: now,
-          gameHoursElapsed: (Number.isFinite(state.gameHoursElapsed) ? state.gameHoursElapsed : 0) + effectiveElapsedHours,
+          gameHoursElapsed: projectedHours,
+          demandIndex: nextDemand,
+          lastDemandUpdateHours: nextDemandCheckpoint,
           completedFlights: (Number.isFinite(state.completedFlights) ? state.completedFlights : 0) + completedFlights,
           reputation: Math.max(0, Math.min(100, (Number.isFinite(state.reputation) ? state.reputation : 50) + reputationDelta)),
           emergencyFund: (Number.isFinite(state.emergencyFund) ? state.emergencyFund : 0) + emergencyFundGain,
@@ -375,6 +389,11 @@ export const useGameStore = create<GameState>()(
 
       setPaused: (paused) => set({ isPaused: paused }),
       setWorkshopMode: (enabled) => set({ workshopMode: enabled }),
+      refreshDemand: () => {
+        const state = get();
+        const delta = (Math.random() - 0.5) * 0.08;
+        set({ demandIndex: Math.max(0.8, Math.min(1.25, state.demandIndex + delta)) });
+      },
 
       resetAccount: () => set({
         money: 10000000,
@@ -397,6 +416,8 @@ export const useGameStore = create<GameState>()(
         isPaused: false,
         bailoutUsed: false,
         workshopMode: false,
+        demandIndex: 1,
+        lastDemandUpdateHours: 0,
       }),
 
       requestBailout: () => {
@@ -500,6 +521,8 @@ export const useGameStore = create<GameState>()(
         isPaused: Boolean((persistedState as Partial<GameState>)?.isPaused),
         bailoutUsed: Boolean((persistedState as Partial<GameState>)?.bailoutUsed),
         workshopMode: false,
+        demandIndex: Number.isFinite((persistedState as Partial<GameState>)?.demandIndex) ? (persistedState as Partial<GameState>).demandIndex as number : currentState.demandIndex,
+        lastDemandUpdateHours: Number.isFinite((persistedState as Partial<GameState>)?.lastDemandUpdateHours) ? (persistedState as Partial<GameState>).lastDemandUpdateHours as number : currentState.lastDemandUpdateHours,
       }),
     }
   )
