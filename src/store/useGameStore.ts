@@ -74,6 +74,7 @@ interface GameState {
   claimMilestoneReward: (targetFlights: number) => boolean;
   setPaused: (paused: boolean) => void;
   requestBailout: () => boolean;
+  resetAccount: () => void;
 }
 
 const REAL_SECONDS_TO_GAME_HOURS = 1;
@@ -112,7 +113,7 @@ const getUpgradeCost = (level: number, upgradeType: 'engine' | 'capacity' | 'fue
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
-      money: 1000000,
+      money: 10000000,
       companyName: 'My Airline',
       playerName: '',
       playerSkill: '',
@@ -332,8 +333,8 @@ export const useGameStore = create<GameState>()(
 
             const conditionDegradation = Math.min(plane.condition, plane.route.distance / 1500);
             completedFlights += 1;
-            reputationDelta += plane.condition > 70 ? 0.2 : -0.25;
-            if (state.playerSkill === "operations") reputationDelta += 0.05;
+            reputationDelta += plane.condition > 70 ? 0.06 : -0.08;
+            if (state.playerSkill === "operations") reputationDelta += 0.02;
             return {
               ...plane,
               status: 'idle',
@@ -366,6 +367,27 @@ export const useGameStore = create<GameState>()(
 
 
       setPaused: (paused) => set({ isPaused: paused }),
+
+      resetAccount: () => set({
+        money: 10000000,
+        companyName: "My Airline",
+        playerName: "",
+        playerSkill: "",
+        planes: [],
+        logs: [],
+        lastSaved: Date.now(),
+        gameHoursElapsed: 0,
+        completedFlights: 0,
+        reputation: 50,
+        emergencyFund: 0,
+        autoDispatchEnabled: false,
+        autoTicketPrice: 500,
+        autoRepairEnabled: false,
+        autoRepairThreshold: 65,
+        claimedMilestones: [],
+        isPaused: false,
+        bailoutUsed: false,
+      }),
 
       requestBailout: () => {
         const state = get();

@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 
 export default function CompanyProfile() {
-  const { playerName, companyName, playerSkill, reputation, completedFlights, emergencyFund, money, planes, logs, gameHoursElapsed } = useGameStore();
+  const { playerName, companyName, playerSkill, reputation, completedFlights, emergencyFund, money, planes, logs, gameHoursElapsed, resetAccount } = useGameStore();
 
   const avgCondition = useMemo(() => {
     if (!planes.length) return 0;
@@ -32,6 +32,12 @@ export default function CompanyProfile() {
           <div><p className="text-gray-500">Game Hours</p><p className="font-semibold">{gameHoursElapsed.toFixed(1)} jam</p></div>
           <div><p className="text-gray-500">Recent Logs</p><p className="font-semibold">{logs.length}</p></div>
         </div>
+      </div>
+
+      <div className="bg-rose-50 border border-rose-200 rounded-xl p-4">
+        <p className="font-semibold text-rose-700">Danger Zone</p>
+        <p className="text-sm text-rose-600 mb-3">Hapus akun akan reset seluruh progres ke awal.</p>
+        <button onClick={() => { if (confirm("Yakin reset akun?")) resetAccount(); }} className="px-4 py-2 rounded bg-rose-600 text-white">Hapus Akun / Reset</button>
       </div>
     </div>
   );
