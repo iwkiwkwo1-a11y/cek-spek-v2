@@ -1,119 +1,108 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { ComposableMap, Geographies, Geography, Line, Marker } from 'react-simple-maps';
 import { OwnedPlane, useGameStore } from '@/store/useGameStore';
 import { AIRPORTS } from '@/data/airports';
 import { geoInterpolate } from 'd3-geo';
 
-const geoUrl = "/features.json";
+const geoUrl = '/features.json';
 
 export default function GameMap() {
   const { planes } = useGameStore();
+  const [nowMs, setNowMs] = useState(0);
 
-  // Calculate plane's current position using D3's geoInterpolate for accurate great-circle path
+  useEffect(() => {
+    let frame = 0;
+    let lastUpdate = Date.now();
+
+    const loop = () => {
+      const now = Date.now();
+      if (now - lastUpdate > 120) {
+        setNowMs(now);
+        lastUpdate = now;
+      }
+      frame = requestAnimationFrame(loop);
+    };
+
+    frame = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const activeFlights = useMemo(() => planes.filter((p) => p.status === 'flying' && p.route), [planes]);
+
   const getPlanePosition = (plane: OwnedPlane): [number, number] | null => {
     const route = plane.route;
     if (!route) return null;
 
-    const from = AIRPORTS.find(a => a.id === plane.currentAirportId);
-    const to = AIRPORTS.find(a => a.id === route.destinationAirportId);
-
+    const from = AIRPORTS.find((a) => a.id === plane.currentAirportId);
+    const to = AIRPORTS.find((a) => a.id === route.destinationAirportId);
     if (!from || !to) return null;
 
-    const progressRatio = Math.min(route.progress / route.distance, 1);
+    const timeRatio = Math.max(0, Math.min(1, (nowMs - route.departureTime) / Math.max(1, route.estimatedArrivalTime - route.departureTime)));
+    const progressRatio = Math.max(Math.min(route.progress / route.distance, 1), timeRatio);
 
-    // d3 geoInterpolate uses [longitude, latitude]
     const interpolate = geoInterpolate([from.lng, from.lat], [to.lng, to.lat]);
-    const currentPos = interpolate(progressRatio);
-
-    return currentPos as [number, number];
+    return interpolate(progressRatio) as [number, number];
   };
 
-  const activeFlights = planes.filter(p => p.status === 'flying' && p.route);
-
   return (
-    <div className="h-[600px] bg-[#c1e0f5] rounded-xl overflow-hidden shadow-sm border border-gray-100 z-0 relative flex items-center justify-center">
+    <div className="h-[620px] bg-gradient-to-b from-sky-200 to-sky-100 rounded-2xl overflow-hidden shadow-lg border border-sky-200 relative">
       <ComposableMap
         projection="geoMercator"
-        projectionConfig={{
-          scale: 140,
-        }}
+        projectionConfig={{ scale: 140 }}
         width={800}
         height={400}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: '100%', height: '100%' }}
       >
         <Geographies geography={geoUrl}>
-          {({ geographies }) =>
-            geographies.map((geo) => (
-              <Geography
-                key={geo.rsmKey}
-                geography={geo}
-                fill="#f1f5f9"
-                stroke="#cbd5e1"
-                strokeWidth={0.5}
-                style={{
-                  default: { outline: "none" },
-                  hover: { fill: "#e2e8f0", outline: "none" },
-                  pressed: { outline: "none" },
-                }}
-              />
-            ))
-          }
+          {({ geographies }) => geographies.map((geo) => (
+            <Geography
+              key={geo.rsmKey}
+              geography={geo}
+              fill="#f8fafc"
+              stroke="#cbd5e1"
+              strokeWidth={0.4}
+              style={{ default: { outline: 'none' }, hover: { fill: '#e2e8f0', outline: 'none' }, pressed: { outline: 'none' } }}
+            />
+          ))}
         </Geographies>
 
-        {/* Draw Airports */}
         {AIRPORTS.map((airport) => (
           <Marker key={airport.id} coordinates={[airport.lng, airport.lat]}>
-            <circle r={2} fill="#ef4444" stroke="#fff" strokeWidth={1} />
-            <text
-              textAnchor="middle"
-              y={-5}
-              style={{ fontFamily: "system-ui", fill: "#334155", fontSize: "6px", fontWeight: "bold" }}
-            >
+            <circle r={2.4} fill="#ef4444" stroke="#fff" strokeWidth={1} />
+            <text textAnchor="middle" y={-6} style={{ fontFamily: 'system-ui', fill: '#334155', fontSize: '6px', fontWeight: 700 }}>
               {airport.id}
             </text>
           </Marker>
         ))}
 
-        {/* Draw Routes & Planes */}
         {activeFlights.map((plane) => {
-          const from = AIRPORTS.find(a => a.id === plane.currentAirportId);
-          const to = AIRPORTS.find(a => a.id === plane.route!.destinationAirportId);
-
+          const route = plane.route;
+          if (!route) return null;
+          const from = AIRPORTS.find((a) => a.id === plane.currentAirportId);
+          const to = AIRPORTS.find((a) => a.id === route.destinationAirportId);
           if (!from || !to) return null;
 
           const currentPos = getPlanePosition(plane);
 
           return (
             <g key={plane.id}>
-              {/* Route Line */}
               <Line
                 from={[from.lng, from.lat]}
                 to={[to.lng, to.lat]}
-                stroke="#3b82f6"
-                strokeWidth={1}
+                stroke="#2563eb"
+                strokeWidth={1.4}
                 strokeLinecap="round"
-                strokeDasharray="6 4"
-                style={{ opacity: 0.6 }}
+                strokeDasharray="7 5"
+                style={{ opacity: 0.75 }}
               />
 
-              {/* Plane Marker */}
               {currentPos && (
                 <Marker coordinates={currentPos}>
-                  <circle r={3.5} fill="rgba(30,64,175,0.2)" />
-                  {/* Plane Icon (SVG) */}
-                  <g transform="translate(-8, -8) scale(0.6)" style={{ transition: "transform 0.9s linear" }}>
-                    <path
-                      d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
-                      fill="#1e40af"
-                    />
-                  </g>
-                  {/* Plane Name Tag */}
-                  <text
-                    textAnchor="middle"
-                    y={-12}
-                    style={{ fontFamily: "system-ui", fill: "#1e3a8a", fontSize: "5px", fontWeight: "bold" }}
-                  >
+                  <circle r={5} fill="rgba(37, 99, 235, 0.2)" />
+                  <circle r={3.4} fill="#1d4ed8" stroke="#dbeafe" strokeWidth={1} />
+                  <text textAnchor="middle" y={-14} style={{ fontFamily: 'system-ui', fill: '#1e3a8a', fontSize: '6px', fontWeight: 700 }}>
                     {plane.name}
                   </text>
                 </Marker>
