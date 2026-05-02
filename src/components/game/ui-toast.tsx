@@ -13,7 +13,7 @@ export function GameToast({ message, type }: ToastProps) {
       : 'bg-slate-700';
 
   return (
-    <div className={`fixed bottom-6 right-6 z-50 text-white px-4 py-3 rounded-xl shadow-lg ${style} animate-[fadeIn_.2s_ease-out]`}>
+    <div className={`fixed bottom-6 right-6 z-50 text-white px-4 py-3 rounded-xl shadow-lg ${style} animate-[fadeIn_.2s_ease-out,fadeOut_.25s_ease-in_2.25s_forwards]`}>
       {message}
     </div>
   );
