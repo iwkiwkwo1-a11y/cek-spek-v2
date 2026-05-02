@@ -52,6 +52,7 @@ interface GameState {
   autoTicketPrice: number;
   autoRepairEnabled: boolean;
   autoRepairThreshold: number;
+  autoDispatchStrategy: "nearest" | "profit";
   claimedMilestones: number[];
   isPaused: boolean;
   bailoutUsed: boolean;
@@ -72,6 +73,7 @@ interface GameState {
   setAutoTicketPrice: (price: number) => void;
   setAutoRepair: (enabled: boolean) => void;
   setAutoRepairThreshold: (threshold: number) => void;
+  setAutoDispatchStrategy: (strategy: "nearest" | "profit") => void;
   claimMilestoneReward: (targetFlights: number) => boolean;
   setPaused: (paused: boolean) => void;
   requestBailout: () => boolean;
@@ -130,6 +132,7 @@ export const useGameStore = create<GameState>()(
       autoTicketPrice: 500,
       autoRepairEnabled: false,
       autoRepairThreshold: 65,
+      autoDispatchStrategy: "profit",
       claimedMilestones: [],
       isPaused: false,
       bailoutUsed: false,
@@ -140,6 +143,7 @@ export const useGameStore = create<GameState>()(
       setAutoTicketPrice: (price) => set({ autoTicketPrice: Math.max(50, price) }),
       setAutoRepair: (enabled) => set({ autoRepairEnabled: enabled }),
       setAutoRepairThreshold: (threshold) => set({ autoRepairThreshold: Math.max(30, Math.min(95, threshold)) }),
+      setAutoDispatchStrategy: (strategy) => set({ autoDispatchStrategy: strategy }),
       initializeProfile: (playerName, companyName, playerSkill) => set({ playerName, companyName, playerSkill }),
 
       buyPlane: (modelId) => {
@@ -388,6 +392,7 @@ export const useGameStore = create<GameState>()(
         autoTicketPrice: 500,
         autoRepairEnabled: false,
         autoRepairThreshold: 65,
+        autoDispatchStrategy: "profit",
         claimedMilestones: [],
         isPaused: false,
         bailoutUsed: false,
@@ -440,11 +445,23 @@ export const useGameStore = create<GameState>()(
         const idlePlanes = refreshed.planes.filter((p) => p.status === "idle");
 
         idlePlanes.forEach((plane) => {
+          const from = AIRPORTS.find((a) => a.id === plane.currentAirportId);
+          if (!from) return;
+
           const options = AIRPORTS.filter((a) => a.id !== plane.currentAirportId);
-          const next = options[Math.floor(Math.random() * options.length)];
-          if (next) {
-            refreshed.assignRoute(plane.id, next.id, refreshed.autoTicketPrice);
+          let next = options[0];
+
+          if (refreshed.autoDispatchStrategy === "nearest") {
+            next = options.sort((a, b) => {
+              const da = Math.hypot(a.lat - from.lat, a.lng - from.lng);
+              const db = Math.hypot(b.lat - from.lat, b.lng - from.lng);
+              return da - db;
+            })[0];
+          } else {
+            next = options[Math.floor(Math.random() * options.length)];
           }
+
+          if (next) refreshed.assignRoute(plane.id, next.id, refreshed.autoTicketPrice);
         });
       },
       addMoney: (amount) => set((state) => ({ money: state.money + amount })),
@@ -478,6 +495,7 @@ export const useGameStore = create<GameState>()(
         autoTicketPrice: Number.isFinite((persistedState as Partial<GameState>)?.autoTicketPrice) ? (persistedState as Partial<GameState>).autoTicketPrice as number : currentState.autoTicketPrice,
         autoRepairEnabled: Boolean((persistedState as Partial<GameState>)?.autoRepairEnabled),
         autoRepairThreshold: Number.isFinite((persistedState as Partial<GameState>)?.autoRepairThreshold) ? (persistedState as Partial<GameState>).autoRepairThreshold as number : currentState.autoRepairThreshold,
+        autoDispatchStrategy: ((persistedState as Partial<GameState>)?.autoDispatchStrategy === "nearest" ? "nearest" : "profit") as "nearest" | "profit",
         claimedMilestones: Array.isArray((persistedState as Partial<GameState>)?.claimedMilestones) ? (persistedState as Partial<GameState>).claimedMilestones as number[] : currentState.claimedMilestones,
         isPaused: Boolean((persistedState as Partial<GameState>)?.isPaused),
         bailoutUsed: Boolean((persistedState as Partial<GameState>)?.bailoutUsed),

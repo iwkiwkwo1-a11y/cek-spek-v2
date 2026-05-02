@@ -149,7 +149,7 @@ export default function Dashboard() {
         <h2 className="text-xl font-bold mb-3">v3.3 Release Notes</h2>
         <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
           <li>Added simulation controls (pause/resume) and one-time bailout to keep long runs alive.</li>
-          <li>Engineering memberi diskon upgrade + maintenance untuk strategi growth jangka panjang.</li>
+          <li>Auto dispatch kini punya strategy mode (nearest/profit) untuk gaya operasi berbeda.</li>
           <li>Ritme simulasi tetap 1 detik nyata = 1 jam game untuk gameplay yang lebih dinamis.</li>
         </ul>
       </div>
